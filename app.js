@@ -21,7 +21,7 @@
   const errorTemplate = document.getElementById("errorTemplate");
 
   const USE_FAKE_API = true;
-  const FAKE_DELAY_MS = 5000;
+  const FAKE_DELAY_MS = 1000;
   const API_ENDPOINT = document.body.dataset?.apiEndpoint || "/api/documents/parse";
 
   const createId = () =>
@@ -132,20 +132,12 @@
     copyButton.disabled = true;
   };
 
-  const sanitizeHtml = (htmlString) => {
-    const template = document.createElement("template");
-    template.innerHTML = htmlString;
-    template.content.querySelectorAll("script").forEach((el) => el.remove());
-    return template.content.cloneNode(true);
-  };
-
   const renderResponse = (htmlString) => {
     if (!htmlString) {
       resetResponseView();
       return;
     }
-    responseContainer.innerHTML = "";
-    responseContainer.appendChild(sanitizeHtml(htmlString));
+    responseContainer.innerHTML = htmlString;
     placeholder.hidden = true;
     copyButton.disabled = false;
     state.lastResponse = htmlString;
@@ -162,15 +154,10 @@
     copyButton.disabled = true;
   };
 
-  const createFakeHtml = (file) => {
-    const timestamp = new Date().toLocaleString("ko-KR", {
-      hour12: false
-    });
+  const createFakeHtml = () => {
     return `
       <section>
-        <h3>샘플 분석 결과</h3>
-        <p>파일명: <strong>${file.name}</strong></p>
-        <p>분석 시간: ${timestamp}</p>
+        <h3>필드 추출 미리보기</h3>
         <table>
           <thead>
             <tr>
@@ -182,22 +169,22 @@
           <tbody>
             <tr>
               <td>제목</td>
-              <td>${file.name.replace(/\.[^.]+$/, "")} 샘플</td>
+              <td>거래 내역 요약</td>
               <td>0.93</td>
             </tr>
             <tr>
               <td>문서 유형</td>
-              <td>${file.type || "이미지"}</td>
+              <td>Invoice</td>
               <td>0.88</td>
             </tr>
             <tr>
               <td>페이지 수</td>
-              <td>${file.type.includes("pdf") ? 3 : 1}</td>
+              <td>1</td>
               <td>0.74</td>
             </tr>
           </tbody>
         </table>
-        <p class="muted">※ 실제 API 연결 전까지는 임시 데이터가 표시됩니다.</p>
+        <p class="muted">※ 현재는 PoC용 예시 데이터가 표시됩니다.</p>
       </section>
     `;
   };
@@ -211,7 +198,7 @@
       let html;
       if (USE_FAKE_API) {
         await new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS));
-        html = createFakeHtml(file);
+        html = createFakeHtml();
       } else {
         const formData = new FormData();
         formData.append("file", file);
