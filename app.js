@@ -6,7 +6,7 @@
   const clearButton = document.getElementById("clearButton");
   const uploadButton = document.getElementById("uploadButton");
   const refreshButton = document.getElementById("refreshButton");
-  const copyButton = document.getElementById("copyButton");
+  const downloadButton = document.getElementById("copyButton");
   const previewShell = document.getElementById("previewShell");
   const previewImage = document.getElementById("previewImage");
   const previewPdf = document.getElementById("previewPdf");
@@ -87,7 +87,8 @@ const panelSplitter = document.getElementById("panelSplitter");
     responsePages: [],
     currentPage: 0,
     lastResponse: "",
-    history: []
+    history: [],
+    lastFileName: ""
   };
 
   const formatBytes = (bytes) => {
@@ -199,7 +200,7 @@ const panelSplitter = document.getElementById("panelSplitter");
 
     const persistChanges = () => {
       state.responsePages[state.currentPage] = buildHtmlDocument(editor.innerHTML);
-      updateCopyState();
+      updateDownloadState();
     };
 
     editor.addEventListener("input", persistChanges);
@@ -279,9 +280,11 @@ const panelSplitter = document.getElementById("panelSplitter");
       .filter(Boolean)
       .join(`\n\n${PAGE_BREAK_MARKER}\n\n`);
 
-  const updateCopyState = () => {
+  const updateDownloadState = () => {
     state.lastResponse = hasResponseContent() ? combinedResponse() : "";
-    copyButton.disabled = state.isLoading || !state.lastResponse;
+    if (downloadButton) {
+      downloadButton.disabled = state.isLoading || !state.lastResponse;
+    }
   };
 
   const toggleLoading = (isLoading, message = "분석 중...") => {
@@ -302,7 +305,7 @@ const panelSplitter = document.getElementById("panelSplitter");
     responseContainer.innerHTML = "";
     responseContainer.hidden = true;
     placeholder.hidden = false;
-    updateCopyState();
+    updateDownloadState();
     syncPager();
   };
 
@@ -318,7 +321,7 @@ const panelSplitter = document.getElementById("panelSplitter");
       responseContainer.innerHTML = "";
       responseContainer.hidden = true;
     }
-    updateCopyState();
+    updateDownloadState();
     renderPreviewPage();
     syncPager();
   };
@@ -333,7 +336,7 @@ const panelSplitter = document.getElementById("panelSplitter");
     }
     placeholder.hidden = true;
     state.responsePages = [];
-    updateCopyState();
+    updateDownloadState();
   };
 
   const loadMockHtmlPages = async () => MOCK_DEFAULT_PAGES;
@@ -440,6 +443,7 @@ const panelSplitter = document.getElementById("panelSplitter");
     const jobId = createId();
     state.activeJobId = jobId;
     state.file = selectedFile;
+    state.lastFileName = selectedFile.name || "";
     setClearButtonState(false);
     await setPreview(selectedFile);
     sendToApi(selectedFile, jobId);
@@ -454,6 +458,7 @@ const panelSplitter = document.getElementById("panelSplitter");
     state.currentPage = 0;
     state.activeJobId = null;
     state.lastResponse = "";
+    state.lastFileName = "";
     setClearButtonState(true);
     if (uploadButton) uploadButton.disabled = true;
     refreshButton.disabled = true;
@@ -478,17 +483,30 @@ const panelSplitter = document.getElementById("panelSplitter");
     event.stopPropagation();
   };
 
-  const handleCopy = async () => {
-    if (!state.lastResponse) return;
-    try {
-      await navigator.clipboard.writeText(state.lastResponse);
-      copyButton.textContent = "복사 완료";
-      setTimeout(() => {
-        copyButton.textContent = "HTML 복사";
-      }, 1500);
-    } catch (error) {
-      console.warn("Clipboard unavailable", error);
+  const buildDownloadFileName = () => {
+    if (state.lastFileName) {
+      const base = state.lastFileName.replace(/\.[^.]+$/, "") || "ai-result";
+      return `${base}-result.html`;
     }
+    return "ai-result.html";
+  };
+
+  const handleDownload = () => {
+    if (!state.lastResponse || !downloadButton) return;
+    const blob = new Blob([state.lastResponse], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = buildDownloadFileName();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    const originalText = downloadButton.textContent;
+    downloadButton.textContent = "다운로드 완료";
+    setTimeout(() => {
+      downloadButton.textContent = originalText || "HTML 다운로드";
+    }, 1500);
   };
 
   const buildHistoryItem = (entry) => {
@@ -557,6 +575,7 @@ const panelSplitter = document.getElementById("panelSplitter");
     state.responsePages = entry.pages?.map((page) => page) ?? [];
     state.previewMeta = entry.fileMeta || "";
     state.currentPage = 0;
+    state.lastFileName = entry.name || "";
     updatePreviewMeta(formatDisplayName(entry.name), state.previewMeta);
     renderPreviewPage();
     if (hasResponseContent()) {
@@ -567,7 +586,7 @@ const panelSplitter = document.getElementById("panelSplitter");
       responseContainer.innerHTML = "";
       responseContainer.hidden = true;
     }
-    updateCopyState();
+    updateDownloadState();
     syncPager();
   };
 
@@ -637,7 +656,7 @@ const panelSplitter = document.getElementById("panelSplitter");
 
     if (uploadButton) uploadButton.addEventListener("click", triggerReanalysis);
     refreshButton.addEventListener("click", triggerReanalysis);
-    copyButton.addEventListener("click", handleCopy);
+    if (downloadButton) downloadButton.addEventListener("click", handleDownload);
     clearHistoryButton.addEventListener("click", clearHistory);
     mockToggleButton.addEventListener("click", () => setMockMode(!state.mockMode));
 
@@ -654,7 +673,7 @@ const panelSplitter = document.getElementById("panelSplitter");
 
     if (uploadButton) uploadButton.disabled = true;
     refreshButton.disabled = true;
-    copyButton.disabled = true;
+    if (downloadButton) downloadButton.disabled = true;
     setClearButtonState(true);
     setMockMode(state.mockMode);
     syncPager();
