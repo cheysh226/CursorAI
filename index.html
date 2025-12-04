@@ -30,12 +30,12 @@
     <main class="workspace">
       <header class="workspace__header">
         <div>
-          <p class="eyebrow">Drag &amp; Drop 파이프라인</p>
-          <h1>이미지 · PDF → 구조화된 데이터</h1>
+          <h1>Horizontal AI · OCR</h1>
+          <p class="muted header-subtitle">이미지 · PDF를 투입하면 구조화된 정보를 바로 확인할 수 있습니다.</p>
         </div>
         <div class="connection-pill" role="status" aria-live="polite">
           <span class="dot" aria-hidden="true"></span>
-          Parsing API 연결됨
+          OCR AI 엔진 대기 중
         </div>
       </header>
 
@@ -43,8 +43,8 @@
         <section class="panel panel--ingest" aria-labelledby="ingest-title">
           <div class="panel__header">
             <div>
-              <p class="eyebrow">1. 업로드</p>
-              <h2 id="ingest-title">이미지 또는 PDF 파일 선택</h2>
+              <p class="eyebrow">문서 투입</p>
+              <h2 id="ingest-title">이미지 또는 PDF를 여기로 가져오세요</h2>
               <p class="muted">PNG, JPG, GIF, PDF · 최대 10MB</p>
             </div>
             <button type="button" class="ghost-action" id="clearButton" aria-disabled="true">입력 초기화</button>
@@ -69,15 +69,15 @@
               <button type="button" class="ghost-action ghost-action--small" id="uploadButton">다시 요청</button>
             </div>
           </div>
-          <p class="helper-text">이미지가 아니면 간략 미리보기로 표시됩니다. 업로드 완료 후 왼쪽 히스토리에서 다시 열 수 있습니다.</p>
+          <p class="helper-text">문서가 처리되면 왼쪽 최근 업로드 목록에 기록되고, 클릭하면 언제든 동일한 결과를 다시 볼 수 있습니다.</p>
         </section>
 
         <section class="panel panel--response" aria-labelledby="response-title">
           <div class="panel__header">
             <div>
-              <p class="eyebrow">2. 응답</p>
-              <h2 id="response-title">파싱 결과</h2>
-              <p class="muted">API 응답 HTML을 그대로 미리보기합니다.</p>
+              <p class="eyebrow">AI 결과 미리보기</p>
+              <h2 id="response-title">현업이 바로 활용할 수 있는 형태</h2>
+              <p class="muted">테이블/텍스트 형태로 정돈된 정보를 확인하세요.</p>
             </div>
             <div class="view-controls" role="group" aria-label="표시 설정">
               <button type="button" class="ghost-action" id="refreshButton">재시도</button>

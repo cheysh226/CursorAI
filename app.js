@@ -34,7 +34,8 @@
     isLoading: false,
     lastResponse: "",
     history: [],
-    previewSource: null
+    previewSource: null,
+    previewMeta: ""
   };
 
   const formatBytes = (bytes) => {
@@ -43,6 +44,32 @@
     const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
     const value = bytes / Math.pow(1024, i);
     return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+  };
+
+  const formatFileMeta = (file) => `${file.type || "알 수 없음"} · ${formatBytes(file.size)}`;
+
+  const updatePreviewUI = ({ name, meta, previewSource, isPdf }) => {
+    if (!name && !meta) {
+      previewShell.hidden = true;
+      previewImage.removeAttribute("src");
+      previewPdf.hidden = true;
+      return;
+    }
+
+    previewShell.hidden = false;
+    fileNameEl.textContent = name;
+    fileMetaEl.textContent = meta;
+
+    if (previewSource) {
+      previewImage.src = previewSource;
+      previewImage.hidden = false;
+      previewPdf.hidden = true;
+    } else {
+      previewImage.removeAttribute("src");
+      previewImage.hidden = true;
+      previewPdf.hidden = false;
+      previewPdf.textContent = isPdf ? "PDF" : "FILE";
+    }
   };
 
   const setClearButtonState = (disabled) => {
@@ -60,28 +87,31 @@
 
   const setPreview = async (file) => {
     if (!file) {
-      previewShell.hidden = true;
+      updatePreviewUI({ name: "", meta: "", previewSource: null, isPdf: false });
       state.previewSource = null;
+      state.previewMeta = "";
       return;
     }
 
-    fileNameEl.textContent = file.name;
-    fileMetaEl.textContent = `${file.type || "알 수 없음"} · ${formatBytes(file.size)}`;
-    previewShell.hidden = false;
-
+    const metaText = formatFileMeta(file);
+    let previewSource = null;
+    let isPdf = false;
     if (file.type.startsWith("image/")) {
       const dataUrl = await readAsDataUrl(file);
-      previewImage.src = dataUrl;
-      previewImage.hidden = false;
-      previewPdf.hidden = true;
-      state.previewSource = dataUrl;
+      previewSource = dataUrl;
     } else {
-      previewImage.removeAttribute("src");
-      previewImage.hidden = true;
-      previewPdf.hidden = false;
-      previewPdf.textContent = file.type.includes("pdf") ? "PDF" : "FILE";
-      state.previewSource = null;
+      isPdf = file.type.includes("pdf");
     }
+
+    updatePreviewUI({
+      name: file.name,
+      meta: metaText,
+      previewSource,
+      isPdf
+    });
+
+    state.previewSource = previewSource;
+    state.previewMeta = metaText;
   };
 
   const toggleLoading = (isLoading, message = "분석 중...") => {
@@ -220,10 +250,12 @@
   const clearFile = () => {
     state.file = null;
     fileInput.value = "";
-    previewShell.hidden = true;
+    updatePreviewUI({ name: "", meta: "", previewSource: null, isPdf: false });
     setClearButtonState(true);
     uploadButton.disabled = true;
     refreshButton.disabled = true;
+    state.previewSource = null;
+    state.previewMeta = "";
     resetResponseView();
   };
 
@@ -278,7 +310,7 @@
     nameEl.textContent = entry.name;
     const metaEl = document.createElement("p");
     metaEl.className = "file-meta";
-    metaEl.textContent = `${entry.timestamp} · ${entry.status}`;
+    metaEl.textContent = `${entry.timestamp} · ${entry.fileMeta || entry.status}`;
     metaWrap.appendChild(nameEl);
     metaWrap.appendChild(metaEl);
 
@@ -305,7 +337,8 @@
       timestamp: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }),
       status: "완료",
       previewSource,
-      isPdf
+      isPdf,
+      fileMeta: state.previewMeta || formatFileMeta(file)
     };
     state.history = [entry, ...state.history].slice(0, 10);
     refreshHistoryList();
@@ -315,6 +348,12 @@
     const entry = state.history.find((item) => item.id === entryId);
     if (!entry) return;
     renderResponse(entry.html);
+    updatePreviewUI({
+      name: entry.name,
+      meta: entry.fileMeta || "",
+      previewSource: entry.previewSource,
+      isPdf: entry.isPdf
+    });
   };
 
   const clearHistory = () => {
