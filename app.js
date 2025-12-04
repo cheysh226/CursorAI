@@ -214,7 +214,7 @@
       if (spinnerLabel) spinnerLabel.textContent = message;
     }
     const disabled = isLoading || !state.file;
-    uploadButton.disabled = disabled;
+    if (uploadButton) uploadButton.disabled = disabled;
     refreshButton.disabled = disabled;
     if (responseRetryButton) responseRetryButton.disabled = disabled;
     updateCopyState();
@@ -397,7 +397,7 @@
     state.activeJobId = null;
     state.lastResponse = "";
     setClearButtonState(true);
-    uploadButton.disabled = true;
+    if (uploadButton) uploadButton.disabled = true;
     refreshButton.disabled = true;
     if (responseRetryButton) responseRetryButton.disabled = true;
     updatePreviewMeta("", "");
@@ -588,7 +588,7 @@
       sendToApi(state.file, jobId);
     };
 
-    uploadButton.addEventListener("click", triggerReanalysis);
+    if (uploadButton) uploadButton.addEventListener("click", triggerReanalysis);
     refreshButton.addEventListener("click", triggerReanalysis);
     if (responseRetryButton) {
       responseRetryButton.addEventListener("click", triggerReanalysis);
@@ -605,7 +605,7 @@
 
     responseContainer.addEventListener("input", handleResponseEdit);
 
-    uploadButton.disabled = true;
+    if (uploadButton) uploadButton.disabled = true;
     refreshButton.disabled = true;
     if (responseRetryButton) responseRetryButton.disabled = true;
     copyButton.disabled = true;
