@@ -40,6 +40,21 @@
   const MOCK_OUTPUT = encodeURI(`${MOCK_DIR}/output_test.html`);
   const MOCK_DEFAULT_PAGES = [
     `<section data-page="1">
+      <h3>샘플 분석 리포트</h3>
+      <p>PoC 단계에서는 이미지 1페이지를 기준으로 결과를 제공합니다.</p>
+      <table>
+        <thead><tr><th>필드</th><th>값</th><th>신뢰도</th></tr></thead>
+        <tbody>
+          <tr><td>문서 유형</td><td>세금 계산서</td><td>0.92</td></tr>
+          <tr><td>발행일</td><td>2025-12-01</td><td>0.88</td></tr>
+          <tr><td>총 금액</td><td>₩1,250,000</td><td>0.95</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">※ 실제 API 결과 HTML이 들어올 자리입니다.</p>
+    </section>`
+  ];
+  const MOCK_DEFAULT_PAGES = [
+    `<section data-page="1">
       <h3>샘플 분석 리포트 · 페이지 1</h3>
       <table>
         <thead><tr><th>필드</th><th>값</th><th>신뢰도</th></tr></thead>
@@ -258,21 +273,7 @@
   };
 
   const loadMockHtmlPages = async () => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    try {
-      const response = await fetch(MOCK_OUTPUT, { cache: "no-store", signal: controller.signal });
-      if (!response.ok) throw new Error(`Failed to load ${MOCK_OUTPUT}`);
-      const text = await response.text();
-      const pages = splitPages(text);
-      console.debug("[Mock] Loaded output_test.html, page count:", pages.length);
-      return pages.length ? pages : MOCK_DEFAULT_PAGES;
-    } catch (error) {
-      console.warn("Mock HTML load failed; using fallback pages.", error);
-      return MOCK_DEFAULT_PAGES;
-    } finally {
-      clearTimeout(timeoutId);
-    }
+    return MOCK_DEFAULT_PAGES;
   };
 
   const setMockMode = (enabled) => {
@@ -344,11 +345,6 @@
         if (!response.ok) throw new Error(`API responded with ${response.status}`);
         const html = await response.text();
         htmlPages = [html];
-      }
-
-      if (state.mockMode && state.previewPages.length < htmlPages.length) {
-        const fallback = state.previewPages[0] || MOCK_INPUT;
-        state.previewPages = Array.from({ length: htmlPages.length }, (_, idx) => state.previewPages[idx] || fallback);
       }
 
       if (state.activeJobId === jobId) {
