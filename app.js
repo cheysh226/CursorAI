@@ -265,6 +265,7 @@
       if (!response.ok) throw new Error(`Failed to load ${MOCK_OUTPUT}`);
       const text = await response.text();
       const pages = splitPages(text);
+      console.debug("[Mock] Loaded output_test.html, page count:", pages.length);
       return pages.length ? pages : MOCK_DEFAULT_PAGES;
     } catch (error) {
       console.warn("Mock HTML load failed; using fallback pages.", error);
