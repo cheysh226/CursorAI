@@ -181,7 +181,15 @@
   };
 
   const renderResponsePage = () => {
-    responseContainer.innerHTML = state.responsePages[state.currentPage] || "";
+    const html = state.responsePages[state.currentPage] || "";
+    responseContainer.innerHTML = "";
+    if (!html) return;
+    const iframe = document.createElement("iframe");
+    iframe.className = "response-frame";
+    iframe.title = `결과 페이지 ${state.currentPage + 1}`;
+    iframe.setAttribute("loading", "lazy");
+    iframe.srcdoc = html;
+    responseContainer.appendChild(iframe);
   };
 
   const totalPages = () => Math.max(state.previewPages.length, state.responsePages.length, 0);
@@ -532,17 +540,6 @@
     dropzone.addEventListener("drop", handleDrop);
   };
 
-  const handleResponseEdit = () => {
-    if (!state.responsePages.length) {
-      state.responsePages = [responseContainer.innerHTML];
-      state.currentPage = 0;
-    } else {
-      state.responsePages[state.currentPage] = responseContainer.innerHTML;
-    }
-    placeholder.hidden = hasResponseContent();
-    updateCopyState();
-  };
-
   const init = () => {
     registerDragEvents();
 
@@ -598,8 +595,6 @@
     previewNext.addEventListener("click", () => changePage(1));
     responsePrev.addEventListener("click", () => changePage(-1));
     responseNext.addEventListener("click", () => changePage(1));
-
-    responseContainer.addEventListener("input", handleResponseEdit);
 
     if (uploadButton) uploadButton.disabled = true;
     refreshButton.disabled = true;
