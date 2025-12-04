@@ -6,56 +6,89 @@
   const uploadButton = document.getElementById("uploadButton");
   const refreshButton = document.getElementById("refreshButton");
   const copyButton = document.getElementById("copyButton");
-  const queuedFile = document.getElementById("queuedFile");
+  const previewShell = document.getElementById("previewShell");
+  const previewImage = document.getElementById("previewImage");
+  const previewPdf = document.getElementById("previewPdf");
   const fileNameEl = document.getElementById("fileName");
   const fileMetaEl = document.getElementById("fileMeta");
   const spinner = document.getElementById("spinner");
   const spinnerLabel = spinner ? spinner.querySelector("span:last-child") : null;
   const placeholder = document.getElementById("placeholder");
   const responseContainer = document.getElementById("responseContainer");
+  const historyList = document.getElementById("historyList");
+  const historyEmptyMessage = document.getElementById("historyEmptyMessage");
+  const clearHistoryButton = document.getElementById("clearHistoryButton");
   const errorTemplate = document.getElementById("errorTemplate");
 
-  const API_ENDPOINT = 
-    document.body.dataset?.apiEndpoint || "/api/documents/parse";
+  const USE_FAKE_API = true;
+  const FAKE_DELAY_MS = 5000;
+  const API_ENDPOINT = document.body.dataset?.apiEndpoint || "/api/documents/parse";
+
+  const createId = () =>
+    window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : `entry-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   const state = {
     file: null,
     isLoading: false,
-    lastResponse: ""
+    lastResponse: "",
+    history: [],
+    previewSource: null
   };
 
   const formatBytes = (bytes) => {
     if (!bytes && bytes !== 0) return "";
     const units = ["B", "KB", "MB"];
-    const i = Math.min(
-      Math.floor(Math.log(bytes) / Math.log(1024)),
-      units.length - 1
-    );
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
     const value = bytes / Math.pow(1024, i);
     return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
   };
 
-  const setQueuedFile = (file) => {
+  const setClearButtonState = (disabled) => {
+    clearButton.setAttribute("aria-disabled", disabled ? "true" : "false");
+    clearButton.disabled = disabled;
+  };
+
+  const readAsDataUrl = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
+
+  const setPreview = async (file) => {
     if (!file) {
-      queuedFile.hidden = true;
-      clearButton.setAttribute("aria-disabled", "true");
-      uploadButton.disabled = true;
+      previewShell.hidden = true;
+      state.previewSource = null;
       return;
     }
 
     fileNameEl.textContent = file.name;
     fileMetaEl.textContent = `${file.type || "알 수 없음"} · ${formatBytes(file.size)}`;
-    queuedFile.hidden = false;
-    clearButton.setAttribute("aria-disabled", "false");
-    uploadButton.disabled = false;
+    previewShell.hidden = false;
+
+    if (file.type.startsWith("image/")) {
+      const dataUrl = await readAsDataUrl(file);
+      previewImage.src = dataUrl;
+      previewImage.hidden = false;
+      previewPdf.hidden = true;
+      state.previewSource = dataUrl;
+    } else {
+      previewImage.removeAttribute("src");
+      previewImage.hidden = true;
+      previewPdf.hidden = false;
+      previewPdf.textContent = file.type.includes("pdf") ? "PDF" : "FILE";
+      state.previewSource = null;
+    }
   };
 
   const toggleLoading = (isLoading, message = "분석 중...") => {
     state.isLoading = isLoading;
-    if (!spinner) return;
-    spinner.hidden = !isLoading;
-    if (spinnerLabel) {
-      spinnerLabel.textContent = message;
+    if (spinner) {
+      spinner.hidden = !isLoading;
+      if (spinnerLabel) spinnerLabel.textContent = message;
     }
     uploadButton.disabled = isLoading || !state.file;
     refreshButton.disabled = isLoading || !state.file;
@@ -99,29 +132,75 @@
     copyButton.disabled = true;
   };
 
+  const createFakeHtml = (file) => {
+    const timestamp = new Date().toLocaleString("ko-KR", {
+      hour12: false
+    });
+    return `
+      <section>
+        <h3>샘플 분석 결과</h3>
+        <p>파일명: <strong>${file.name}</strong></p>
+        <p>분석 시간: ${timestamp}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>열</th>
+              <th>예측 값</th>
+              <th>신뢰도</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>제목</td>
+              <td>${file.name.replace(/\.[^.]+$/, "")} 샘플</td>
+              <td>0.93</td>
+            </tr>
+            <tr>
+              <td>문서 유형</td>
+              <td>${file.type || "이미지"}</td>
+              <td>0.88</td>
+            </tr>
+            <tr>
+              <td>페이지 수</td>
+              <td>${file.type.includes("pdf") ? 3 : 1}</td>
+              <td>0.74</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted">※ 실제 API 연결 전까지는 임시 데이터가 표시됩니다.</p>
+      </section>
+    `;
+  };
+
   const sendToApi = async (file) => {
     if (!file) return;
-    toggleLoading(true, `${file.name} 분석 중...`);
+    toggleLoading(true, `PoC · ${file.name} 분석 중...`);
     placeholder.hidden = true;
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch(API_ENDPOINT, {
-        method: "POST",
-        body: formData,
-        headers: {
-          Accept: "text/html"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
+      let html;
+      if (USE_FAKE_API) {
+        await new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS));
+        html = createFakeHtml(file);
+      } else {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await fetch(API_ENDPOINT, {
+          method: "POST",
+          body: formData,
+          headers: { Accept: "text/html" }
+        });
+        if (!response.ok) throw new Error(`API responded with ${response.status}`);
+        html = await response.text();
       }
 
-      const html = await response.text();
       renderResponse(html);
+      addHistoryEntry({
+        file,
+        html,
+        previewSource: state.previewSource,
+        isPdf: !file.type.startsWith("image/") && file.type.includes("pdf")
+      });
     } catch (error) {
       console.error("Upload failed", error);
       renderError();
@@ -130,17 +209,21 @@
     }
   };
 
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     if (!file) return;
     state.file = file;
-    setQueuedFile(file);
+    setClearButtonState(false);
+    await setPreview(file);
     sendToApi(file);
   };
 
   const clearFile = () => {
     state.file = null;
     fileInput.value = "";
-    setQueuedFile(null);
+    previewShell.hidden = true;
+    setClearButtonState(true);
+    uploadButton.disabled = true;
+    refreshButton.disabled = true;
     resetResponseView();
   };
 
@@ -167,6 +250,76 @@
     } catch (err) {
       console.warn("Clipboard unavailable", err);
     }
+  };
+
+  const buildHistoryItem = (entry) => {
+    const li = document.createElement("li");
+    li.className = "history-item";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "history-entry";
+    button.dataset.historyId = entry.id;
+
+    const thumb = document.createElement("div");
+    thumb.className = "history-thumb";
+    if (entry.previewSource) {
+      const img = document.createElement("img");
+      img.src = entry.previewSource;
+      img.alt = `${entry.name} thumbnail`;
+      thumb.appendChild(img);
+    } else {
+      thumb.textContent = entry.isPdf ? "PDF" : "FILE";
+    }
+
+    const metaWrap = document.createElement("div");
+    metaWrap.className = "history-meta";
+    const nameEl = document.createElement("p");
+    nameEl.className = "file-name";
+    nameEl.textContent = entry.name;
+    const metaEl = document.createElement("p");
+    metaEl.className = "file-meta";
+    metaEl.textContent = `${entry.timestamp} · ${entry.status}`;
+    metaWrap.appendChild(nameEl);
+    metaWrap.appendChild(metaEl);
+
+    button.appendChild(thumb);
+    button.appendChild(metaWrap);
+    button.addEventListener("click", () => loadHistoryEntry(entry.id));
+    li.appendChild(button);
+    return li;
+  };
+
+  const refreshHistoryList = () => {
+    historyList.querySelectorAll(".history-item").forEach((item) => item.remove());
+    historyEmptyMessage.hidden = state.history.length > 0;
+    state.history.forEach((entry) => {
+      historyList.appendChild(buildHistoryItem(entry));
+    });
+  };
+
+  const addHistoryEntry = ({ file, html, previewSource, isPdf }) => {
+    const entry = {
+      id: createId(),
+      name: file.name,
+      html,
+      timestamp: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }),
+      status: "완료",
+      previewSource,
+      isPdf
+    };
+    state.history = [entry, ...state.history].slice(0, 10);
+    refreshHistoryList();
+  };
+
+  const loadHistoryEntry = (entryId) => {
+    const entry = state.history.find((item) => item.id === entryId);
+    if (!entry) return;
+    renderResponse(entry.html);
+  };
+
+  const clearHistory = () => {
+    state.history = [];
+    refreshHistoryList();
   };
 
   const registerDragEvents = () => {
@@ -221,6 +374,12 @@
     });
 
     copyButton.addEventListener("click", handleCopy);
+    clearHistoryButton.addEventListener("click", clearHistory);
+
+    uploadButton.disabled = true;
+    refreshButton.disabled = true;
+    copyButton.disabled = true;
+    setClearButtonState(true);
   };
 
   init();

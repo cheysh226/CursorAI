@@ -8,24 +8,22 @@
 </head>
 <body data-api-endpoint="/api/documents/parse">
   <div class="app-shell">
-    <nav class="side-nav" aria-label="Primary">
+    <nav class="side-nav" aria-label="히스토리">
       <div class="brand">
         <div class="brand__mark" aria-hidden="true">◎</div>
         <div>
           <p class="brand__eyebrow">Doc Parser</p>
-          <p class="brand__title">Workbench</p>
+          <p class="brand__title">History</p>
         </div>
       </div>
-      <button class="primary-action" type="button">새 세션 시작</button>
-      <ul class="nav-links">
-        <li><button type="button" class="nav-link is-active">업로드</button></li>
-        <li><button type="button" class="nav-link">히스토리</button></li>
-        <li><button type="button" class="nav-link">API 키</button></li>
-        <li><button type="button" class="nav-link">환경설정</button></li>
-      </ul>
-      <div class="nav-footer">
-        <p class="status-label">API 상태</p>
-        <p class="status-pill is-online">Online</p>
+      <div class="history">
+        <div class="history__header">
+          <p class="eyebrow">최근 업로드</p>
+          <button type="button" class="ghost-action ghost-action--small" id="clearHistoryButton">모두 삭제</button>
+        </div>
+        <ul class="history-list" id="historyList" aria-live="polite">
+          <li class="history-empty" id="historyEmptyMessage">아직 업로드된 문서가 없습니다.</li>
+        </ul>
       </div>
     </nav>
 
@@ -60,14 +58,18 @@
             <button type="button" class="secondary-action" id="browseButton">파일 찾아보기</button>
           </div>
 
-          <div class="queued-file" id="queuedFile" hidden>
-            <div>
+          <div class="preview-shell" id="previewShell" hidden>
+            <div class="preview-frame">
+              <img id="previewImage" alt="업로드 미리보기" hidden />
+              <div class="preview-pdf" id="previewPdf" aria-hidden="true" hidden>PDF</div>
+            </div>
+            <div class="preview-meta">
               <p class="file-name" id="fileName"></p>
               <p class="file-meta" id="fileMeta"></p>
+              <button type="button" class="ghost-action ghost-action--small" id="uploadButton">다시 요청</button>
             </div>
-            <button type="button" class="ghost-action" id="uploadButton">API 전송</button>
           </div>
-          <p class="helper-text">파일이 업로드되면 자동으로 API에 전송됩니다. 버튼은 수동 재시도용입니다.</p>
+          <p class="helper-text">이미지가 아니면 간략 미리보기로 표시됩니다. 업로드 완료 후 왼쪽 히스토리에서 다시 열 수 있습니다.</p>
         </section>
 
         <section class="panel panel--response" aria-labelledby="response-title">
@@ -78,7 +80,7 @@
               <p class="muted">API 응답 HTML을 그대로 미리보기합니다.</p>
             </div>
             <div class="view-controls" role="group" aria-label="표시 설정">
-              <button type="button" class="ghost-action" id="refreshButton">재요청</button>
+              <button type="button" class="ghost-action" id="refreshButton">재시도</button>
               <button type="button" class="ghost-action" id="copyButton">HTML 복사</button>
             </div>
           </div>
