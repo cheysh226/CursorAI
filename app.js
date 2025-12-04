@@ -18,11 +18,15 @@
   const historyList = document.getElementById("historyList");
   const historyEmptyMessage = document.getElementById("historyEmptyMessage");
   const clearHistoryButton = document.getElementById("clearHistoryButton");
+  const mockToggleButton = document.getElementById("mockToggle");
   const errorTemplate = document.getElementById("errorTemplate");
 
   const USE_FAKE_API = true;
   const FAKE_DELAY_MS = 1000;
   const API_ENDPOINT = document.body.dataset?.apiEndpoint || "/api/documents/parse";
+  const DEFAULT_MOCK_MODE = document.body.dataset?.mockMode !== "false";
+  const MOCK_IMAGE_DATA =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236c7bff'/%3E%3Cstop offset='100%25' stop-color='%235de0ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='240' height='240' rx='24' fill='%230d1020'/%3E%3Cpath d='M64 160h112M64 120h64M64 80h48' stroke='url(%23g)' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E";
 
   const createId = () =>
     window.crypto?.randomUUID
@@ -35,7 +39,8 @@
     lastResponse: "",
     history: [],
     previewSource: null,
-    previewMeta: ""
+    previewMeta: "",
+    mockMode: DEFAULT_MOCK_MODE
   };
 
   const formatBytes = (bytes) => {
@@ -47,6 +52,22 @@
   };
 
   const formatFileMeta = (file) => `${file.type || "알 수 없음"} · ${formatBytes(file.size)}`;
+  const createMockFile = () => ({
+    name: "샘플_문서.jpg",
+    type: "image/jpeg",
+    size: 256000,
+    isMock: true
+  });
+
+  const setMockMode = (enabled) => {
+    state.mockMode = enabled;
+    if (mockToggleButton) {
+      mockToggleButton.textContent = enabled ? "Mock 모드 켜짐" : "Mock 모드 꺼짐";
+      mockToggleButton.setAttribute("aria-pressed", enabled ? "true" : "false");
+    }
+    dropzone.classList.toggle("is-mock", enabled);
+    clearFile();
+  };
 
   const updatePreviewUI = ({ name, meta, previewSource, isPdf }) => {
     if (!name && !meta) {
@@ -86,6 +107,20 @@
     });
 
   const setPreview = async (file) => {
+    if (state.mockMode) {
+      const mockFile = file?.isMock ? file : createMockFile();
+      const metaText = formatFileMeta(mockFile);
+      updatePreviewUI({
+        name: mockFile.name,
+        meta: metaText,
+        previewSource: MOCK_IMAGE_DATA,
+        isPdf: false
+      });
+      state.previewSource = MOCK_IMAGE_DATA;
+      state.previewMeta = metaText;
+      return;
+    }
+
     if (!file) {
       updatePreviewUI({ name: "", meta: "", previewSource: null, isPdf: false });
       state.previewSource = null;
@@ -227,11 +262,12 @@
   };
 
   const handleFile = async (file) => {
-    if (!file) return;
-    state.file = file;
+    const activeFile = state.mockMode ? createMockFile() : file;
+    if (!activeFile) return;
+    state.file = activeFile;
     setClearButtonState(false);
-    await setPreview(file);
-    sendToApi(file);
+    await setPreview(activeFile);
+    sendToApi(activeFile);
   };
 
   const clearFile = () => {
@@ -249,6 +285,10 @@
   const handleDrop = (event) => {
     event.preventDefault();
     dropzone.classList.remove("is-dragover");
+    if (state.mockMode) {
+      handleFile(null);
+      return;
+    }
     const file = event.dataTransfer.files?.[0];
     handleFile(file);
   };
@@ -369,15 +409,31 @@
   const init = () => {
     registerDragEvents();
 
-    dropzone.addEventListener("click", () => fileInput.click());
-    dropzone.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
+    dropzone.addEventListener("click", () => {
+      if (state.mockMode) {
+        handleFile(null);
+      } else {
         fileInput.click();
       }
     });
+    dropzone.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        if (state.mockMode) {
+          handleFile(null);
+        } else {
+          fileInput.click();
+        }
+      }
+    });
 
-    browseButton.addEventListener("click", () => fileInput.click());
+    browseButton.addEventListener("click", () => {
+      if (state.mockMode) {
+        handleFile(null);
+      } else {
+        fileInput.click();
+      }
+    });
 
     fileInput.addEventListener("change", (event) => {
       const file = event.target.files?.[0];
@@ -401,11 +457,13 @@
 
     copyButton.addEventListener("click", handleCopy);
     clearHistoryButton.addEventListener("click", clearHistory);
+    mockToggleButton.addEventListener("click", () => setMockMode(!state.mockMode));
 
     uploadButton.disabled = true;
     refreshButton.disabled = true;
     copyButton.disabled = true;
     setClearButtonState(true);
+    setMockMode(state.mockMode);
   };
 
   init();

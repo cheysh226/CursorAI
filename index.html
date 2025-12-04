@@ -6,7 +6,7 @@
   <title>Document Intelligence Workbench</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body data-api-endpoint="/api/documents/parse">
+<body data-api-endpoint="/api/documents/parse" data-mock-mode="true">
   <div class="app-shell">
     <nav class="side-nav" aria-label="히스토리">
       <div class="brand">
@@ -33,9 +33,14 @@
           <h1>Horizontal AI · OCR</h1>
           <p class="muted header-subtitle">이미지 · PDF를 투입하면 구조화된 정보를 바로 확인할 수 있습니다.</p>
         </div>
-        <div class="connection-pill" role="status" aria-live="polite">
-          <span class="dot" aria-hidden="true"></span>
-          OCR AI 엔진 대기 중
+        <div class="workspace__header-right">
+          <button type="button" class="ghost-action ghost-action--small" id="mockToggle" aria-pressed="true">
+            Mock 모드 켜짐
+          </button>
+          <div class="connection-pill" role="status" aria-live="polite">
+            <span class="dot" aria-hidden="true"></span>
+            OCR AI 엔진 준비 완료
+          </div>
         </div>
       </header>
 

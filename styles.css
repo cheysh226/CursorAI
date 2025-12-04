@@ -254,6 +254,14 @@ textarea {
   margin-bottom: 28px;
 }
 
+.workspace__header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .workspace__header h1 {
   margin: 6px 0 0;
   font-size: 2rem;
@@ -326,11 +334,24 @@ textarea {
   text-align: center;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
   transition: border-color 0.2s ease, background 0.2s ease;
+  position: relative;
 }
 
 .dropzone.is-dragover {
   border-color: var(--accent-strong);
   background: rgba(108, 123, 255, 0.1);
+}
+
+.dropzone.is-mock::after {
+  content: "Mock 모드";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
 }
 
 .dropzone__icon {
