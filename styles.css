@@ -445,7 +445,8 @@ textarea {
 
 .preview-frame {
   width: 100%;
-  min-height: 320px;
+  min-height: 420px;
+  max-height: 520px;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.45);
