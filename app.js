@@ -336,9 +336,12 @@
         renderError();
       }
     } finally {
-      if (state.activeJobId === jobId) {
+      const isSameJob = state.activeJobId === jobId;
+      if (isSameJob) {
         toggleLoading(false);
         state.activeJobId = null;
+      } else if (!state.activeJobId) {
+        toggleLoading(false);
       }
     }
   };
