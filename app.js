@@ -51,9 +51,10 @@
     return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
   };
 
+  const formatDisplayName = (name = "") => name.replace(/_/g, " ");
   const formatFileMeta = (file) => `${file.type || "알 수 없음"} · ${formatBytes(file.size)}`;
   const createMockFile = () => ({
-    name: "샘플_문서.jpg",
+    name: "샘플 문서.jpg",
     type: "image/jpeg",
     size: 256000,
     isMock: true
@@ -62,7 +63,7 @@
   const setMockMode = (enabled) => {
     state.mockMode = enabled;
     if (mockToggleButton) {
-      mockToggleButton.textContent = enabled ? "Mock 모드 켜짐" : "Mock 모드 꺼짐";
+      mockToggleButton.textContent = enabled ? "모의 모드 켜짐" : "모의 모드 꺼짐";
       mockToggleButton.setAttribute("aria-pressed", enabled ? "true" : "false");
     }
     dropzone.classList.toggle("is-mock", enabled);
@@ -139,7 +140,7 @@
     }
 
     updatePreviewUI({
-      name: file.name,
+      name: formatDisplayName(file.name),
       meta: metaText,
       previewSource,
       isPdf
@@ -226,7 +227,8 @@
 
   const sendToApi = async (file) => {
     if (!file) return;
-    toggleLoading(true, `PoC · ${file.name} 분석 중...`);
+    const displayName = formatDisplayName(file.name);
+    toggleLoading(true, `PoC · ${displayName} 분석 중...`);
     placeholder.hidden = true;
 
     try {
@@ -334,7 +336,7 @@
     metaWrap.className = "history-meta";
     const nameEl = document.createElement("p");
     nameEl.className = "file-name";
-    nameEl.textContent = entry.name;
+    nameEl.textContent = formatDisplayName(entry.name);
     const metaEl = document.createElement("p");
     metaEl.className = "file-meta";
     metaEl.textContent = `${entry.timestamp} · ${entry.fileMeta || entry.status}`;

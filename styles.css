@@ -343,7 +343,7 @@ textarea {
 }
 
 .dropzone.is-mock::after {
-  content: "Mock 모드";
+  content: "모의 모드";
   position: absolute;
   top: 12px;
   right: 12px;

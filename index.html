@@ -12,14 +12,14 @@
       <div class="brand">
         <div class="brand__mark" aria-hidden="true">◎</div>
         <div>
-          <p class="brand__eyebrow">Doc Parser</p>
-          <p class="brand__title">History</p>
+          <p class="brand__eyebrow">문서 분석기</p>
+          <p class="brand__title">기록</p>
         </div>
       </div>
       <div class="history">
         <div class="history__header">
-          <p class="eyebrow">최근 업로드</p>
-          <button type="button" class="ghost-action ghost-action--small" id="clearHistoryButton">모두 삭제</button>
+          <p class="eyebrow">최근 처리</p>
+          <button type="button" class="ghost-action ghost-action--small" id="clearHistoryButton">전체 삭제</button>
         </div>
         <ul class="history-list" id="historyList" aria-live="polite">
           <li class="history-empty" id="historyEmptyMessage">아직 업로드된 문서가 없습니다.</li>
@@ -30,16 +30,16 @@
     <main class="workspace">
       <header class="workspace__header">
         <div>
-          <h1>Horizontal AI · OCR</h1>
-          <p class="muted header-subtitle">이미지 · PDF를 투입하면 구조화된 정보를 바로 확인할 수 있습니다.</p>
+          <h1>AI 문서 인식 (OCR)</h1>
+          <p class="muted header-subtitle">이미지/PDF를 넣으면, 정보를 바로 구조화</p>
         </div>
         <div class="workspace__header-right">
           <button type="button" class="ghost-action ghost-action--small" id="mockToggle" aria-pressed="true">
-            Mock 모드 켜짐
+            모의 모드 켜짐
           </button>
           <div class="connection-pill" role="status" aria-live="polite">
             <span class="dot" aria-hidden="true"></span>
-            OCR AI 엔진 준비 완료
+            AI 엔진 준비 완료
           </div>
         </div>
       </header>
@@ -48,19 +48,19 @@
         <section class="panel panel--ingest" aria-labelledby="ingest-title">
           <div class="panel__header">
             <div>
-              <p class="eyebrow">문서 투입</p>
-              <h2 id="ingest-title">이미지 또는 PDF를 여기로 가져오세요</h2>
-              <p class="muted">PNG, JPG, GIF, PDF · 최대 10MB</p>
+              <p class="eyebrow">문서 넣기</p>
+              <h2 id="ingest-title">여기에 파일 끌어놓기</h2>
+              <p class="muted">지원 형식: PNG, JPG, GIF, PDF (최대 10MB)</p>
             </div>
-            <button type="button" class="ghost-action" id="clearButton" aria-disabled="true">입력 초기화</button>
+            <button type="button" class="ghost-action" id="clearButton" aria-disabled="true">업로드 취소</button>
           </div>
 
           <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일을 드래그 앤 드롭 또는 클릭으로 업로드">
             <input type="file" id="fileInput" accept="image/*,.pdf" hidden />
             <div class="dropzone__icon" aria-hidden="true">⇪</div>
-            <p class="dropzone__title">파일을 이곳에 놓으세요</p>
+            <p class="dropzone__title">파일 놓기</p>
             <p class="muted">또는</p>
-            <button type="button" class="secondary-action" id="browseButton">파일 찾아보기</button>
+            <button type="button" class="secondary-action" id="browseButton">내 파일에서 찾기</button>
           </div>
 
           <div class="preview-shell" id="previewShell" hidden>
@@ -71,18 +71,18 @@
             <div class="preview-meta">
               <p class="file-name" id="fileName"></p>
               <p class="file-meta" id="fileMeta"></p>
-              <button type="button" class="ghost-action ghost-action--small" id="uploadButton">다시 요청</button>
+              <button type="button" class="ghost-action ghost-action--small" id="uploadButton">다시 분석</button>
             </div>
           </div>
-          <p class="helper-text">문서가 처리되면 왼쪽 최근 업로드 목록에 기록되고, 클릭하면 언제든 동일한 결과를 다시 볼 수 있습니다.</p>
+          <p class="helper-text">처리된 문서는 기록에 남습니다. 클릭하면 결과를 다시 볼 수 있어요.</p>
         </section>
 
         <section class="panel panel--response" aria-labelledby="response-title">
           <div class="panel__header">
             <div>
-              <p class="eyebrow">AI 결과 미리보기</p>
-              <h2 id="response-title">현업이 바로 활용할 수 있는 형태</h2>
-              <p class="muted">테이블/텍스트 형태로 정돈된 정보를 확인하세요.</p>
+              <p class="eyebrow">AI 분석 결과</p>
+              <h2 id="response-title">바로 활용 가능한 형식</h2>
+              <p class="muted">표/텍스트로 정리된 정보 확인</p>
             </div>
             <div class="view-controls" role="group" aria-label="표시 설정">
               <button type="button" class="ghost-action" id="refreshButton">재시도</button>
