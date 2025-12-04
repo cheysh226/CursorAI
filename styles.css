@@ -374,6 +374,48 @@ textarea {
   display: flex;
   gap: 16px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.preview-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.pager-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pager-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.pager-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pager-label {
+  min-width: 60px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .preview-frame {
@@ -429,11 +471,28 @@ textarea {
 .response-shell {
   position: relative;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   border-radius: var(--radius-md);
   border: var(--border);
   padding: 24px;
   background: rgba(5, 6, 10, 0.6);
   overflow: hidden;
+}
+
+.response-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.editor-tip {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .response-placeholder {
@@ -447,6 +506,17 @@ textarea {
   overflow: auto;
   font-size: 0.95rem;
   line-height: 1.6;
+  min-height: 260px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  outline: none;
+}
+
+.response-body:focus {
+  border-color: rgba(108, 123, 255, 0.8);
+  box-shadow: 0 0 0 1px rgba(108, 123, 255, 0.4);
 }
 
 .response-body table {

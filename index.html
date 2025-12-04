@@ -64,9 +64,20 @@
           </div>
 
           <div class="preview-shell" id="previewShell" hidden>
-            <div class="preview-frame">
-              <img id="previewImage" alt="업로드 미리보기" hidden />
-              <div class="preview-pdf" id="previewPdf" aria-hidden="true" hidden>PDF</div>
+            <div class="preview-viewer">
+              <div class="pager-controls" role="group" aria-label="미리보기 페이지 이동">
+                <button type="button" class="pager-button" id="previewPrev" aria-label="이전 페이지">
+                  ‹
+                </button>
+                <span class="pager-label" id="previewPager">1 / 1</span>
+                <button type="button" class="pager-button" id="previewNext" aria-label="다음 페이지">
+                  ›
+                </button>
+              </div>
+              <div class="preview-frame">
+                <img id="previewImage" alt="업로드 미리보기" hidden />
+                <div class="preview-pdf" id="previewPdf" aria-hidden="true" hidden>PDF</div>
+              </div>
             </div>
             <div class="preview-meta">
               <p class="file-name" id="fileName"></p>
@@ -91,15 +102,34 @@
           </div>
 
           <div class="response-shell" aria-live="polite">
+            <div class="response-tools">
+              <div class="pager-controls" role="group" aria-label="결과 페이지 이동">
+                <button type="button" class="pager-button" id="responsePrev" aria-label="이전 페이지">
+                  ‹
+                </button>
+                <span class="pager-label" id="responsePager">1 / 1</span>
+                <button type="button" class="pager-button" id="responseNext" aria-label="다음 페이지">
+                  ›
+                </button>
+              </div>
+              <p class="editor-tip">결과를 직접 수정한 뒤 HTML을 복사하세요.</p>
+            </div>
             <div class="inline-spinner" id="spinner" role="status" hidden>
               <span class="spinner__dot"></span>
               <span class="spinner__label">분석 중...</span>
             </div>
             <div class="response-placeholder" id="placeholder">
-              <p>오른쪽 패널에서 문서가 표/텍스트로 변환됩니다.</p>
-              <p class="muted">Drag &amp; Drop으로 파일을 올려주세요.</p>
+              <p>왼쪽에서 문서를 선택하면 페이지별 결과가 나타납니다.</p>
+              <p class="muted">필요한 부분을 직접 수정한 뒤 저장할 수 있습니다.</p>
             </div>
-            <article class="response-body" id="responseContainer" aria-live="off" aria-label="파싱된 HTML"></article>
+            <article
+              class="response-body"
+              id="responseContainer"
+              aria-live="off"
+              aria-label="파싱된 HTML"
+              contenteditable="true"
+              spellcheck="false"
+            ></article>
           </div>
         </section>
       </section>
