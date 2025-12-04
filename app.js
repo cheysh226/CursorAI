@@ -23,7 +23,6 @@
   const spinnerLabel = spinner ? spinner.querySelector(".spinner__label") : null;
   const placeholder = document.getElementById("placeholder");
   const responseContainer = document.getElementById("responseContainer");
-  const responseRetryButton = document.getElementById("uploadButtonSecondary");
   const historyList = document.getElementById("historyList");
   const historyEmptyMessage = document.getElementById("historyEmptyMessage");
   const clearHistoryButton = document.getElementById("clearHistoryButton");
