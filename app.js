@@ -35,23 +35,108 @@
   const DEFAULT_MOCK_MODE = document.body.dataset?.mockMode !== "false";
   const PAGE_BREAK_MARKER = "<!-- PAGE BREAK -->";
   const PAGE_BREAK_REGEX = /<!--\s*PAGE BREAK\s*-->/gi;
-  const MOCK_DIR = "모의모드";
-  const MOCK_INPUT = encodeURI(`${MOCK_DIR}/input_test.jpg`);
-  const MOCK_OUTPUT = encodeURI(`${MOCK_DIR}/output_test.html`);
+  const MOCK_INPUT = encodeURI(`모의모드/input_test.jpg`);
+  const ORIGINAL_RESULT_STYLE = `
+body{margin:0;padding:10px;font-family:Arial,sans-serif}
+.container{position:relative;border:1px solid #ccc}
+.block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:14px;overflow:visible;line-height:1.2}
+table{width:100%;border-collapse:collapse;font-size:10px}
+td{border:1px solid #999;padding:2px;text-align:center}
+.block.header,.block.paragraph_title{font-size:10px}
+`;
+  const SCOPED_RESULT_STYLE = `
+.result-html-root{margin:0;padding:10px;height:100%;box-sizing:border-box;font-family:Arial,sans-serif;overflow:auto;background:#fff}
+.result-html-root .container{position:relative;border:1px solid #ccc}
+.result-html-root .block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:14px;overflow:visible;line-height:1.2}
+.result-html-root table{width:100%;border-collapse:collapse;font-size:10px}
+.result-html-root td{border:1px solid #999;padding:2px;text-align:center}
+.result-html-root .block.header,
+.result-html-root .block.paragraph_title{font-size:10px}
+`;
   const MOCK_DEFAULT_PAGES = [
-    `<section data-page="1">
-      <h3>샘플 분석 리포트</h3>
-      <p>PoC 단계에서는 이미지 1페이지를 기준으로 결과를 제공합니다.</p>
+    `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>${ORIGINAL_RESULT_STYLE}</style>
+</head>
+<body>
+  <div class="container" style="width:775px;height:877px">
+    <div class="block paragraph_title" style="left:367px;top:4px;width:56px;height:29px;background:#f3e5f5">M14Ph2</div>
+    <div class="block table" style="left:19px;top:28px;width:564px;height:703px;background:#e3f2fd">
       <table>
-        <thead><tr><th>필드</th><th>값</th><th>신뢰도</th></tr></thead>
-        <tbody>
-          <tr><td>문서 유형</td><td>세금 계산서</td><td>0.92</td></tr>
-          <tr><td>발행일</td><td>2025-12-01</td><td>0.88</td></tr>
-          <tr><td>총 금액</td><td>₩1,250,000</td><td>0.95</td></tr>
-        </tbody>
+        <tr><td colspan="3">INSTITUT 7 919 IPS</td><td colspan="3">CPZR</td><td colspan="3">CPHF</td><td colspan="3">SP17</td></tr>
+        <tr><td>34199</td><td>Cham</td><td>Batch</td><td>Bulk</td><td>Process</td><td>Batch</td><td>Bulk</td><td>Process</td><td>Batch</td><td>Bulk</td><td>Process</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB303</td><td>PM2</td><td>74</td><td>109</td><td>473</td><td>71</td><td>2.97</td><td>5.61</td><td>2</td><td>3.93</td><td>4.19</td><td></td></tr>
+        <tr><td>PM3</td><td>74</td><td>109</td><td>473</td><td>71</td><td>2.97</td><td>5.93</td><td>2</td><td>3.93</td><td>4.19</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB305</td><td>PM2</td><td>2911</td><td>244</td><td>443</td><td>182</td><td>12.0</td><td>5.81</td><td>23.534</td><td>4.70</td><td>4.810</td><td></td></tr>
+        <tr><td>PM3</td><td>3937</td><td>10.0</td><td>435</td><td>3969</td><td>4.2</td><td>6.03</td><td>53.85</td><td>0.75</td><td>5.46</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB401</td><td>PM2</td><td>19780</td><td>10.0</td><td>4152</td><td>2994</td><td>4.2</td><td>5.65</td><td>31935</td><td>0.75</td><td>5.46</td><td></td></tr>
+        <tr><td>PM3</td><td>4637</td><td>10.0</td><td>449</td><td>4626</td><td>4.2</td><td>5.46</td><td>30915</td><td>0.75</td><td>5.46</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB402</td><td>PM2</td><td>311</td><td>20</td><td>3.36</td><td>310</td><td>5.14</td><td>5.60</td><td>6193</td><td>4.99</td><td>4.92</td><td></td></tr>
+        <tr><td>PM3</td><td>2638</td><td>20</td><td>3.29</td><td>4902</td><td>5.14</td><td>5.56</td><td>12613</td><td>4.99</td><td>4.92</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB404</td><td>PM2</td><td>401</td><td>0.2</td><td>3.63</td><td>1599</td><td>3.8</td><td>5.99</td><td>28295</td><td>4.12</td><td>4.97</td><td></td></tr>
+        <tr><td>PM3</td><td>794</td><td>0.2</td><td>3.04</td><td>3272</td><td>3.8</td><td>6.25</td><td>30444</td><td>4.12</td><td>4.97</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB412</td><td>PM2</td><td>4615</td><td>0.5</td><td>3.89</td><td>4606</td><td>13.8</td><td>5.59</td><td>21611</td><td>4.51</td><td>4.90</td><td></td></tr>
+        <tr><td>PM3</td><td>3866</td><td>0.5</td><td>415</td><td>4291</td><td>13.8</td><td>5.80</td><td>29339</td><td>4.51</td><td>4.90</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB413</td><td>PM2</td><td>3954</td><td>9.93</td><td>4.73</td><td>3936</td><td>2.0</td><td>5.32</td><td>20929</td><td>4.87</td><td>4.99</td><td></td></tr>
+        <tr><td>PM3</td><td>2506</td><td>9.93</td><td>4.41</td><td>4990</td><td>2.0</td><td>5.44</td><td>28931</td><td>4.87</td><td>4.99</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB604</td><td>PM2</td><td>970</td><td>0.7</td><td>3.24</td><td>969</td><td>14.5</td><td>5.35</td><td>7921</td><td>5.32</td><td>4.92</td><td></td></tr>
+        <tr><td>PM3</td><td>3787</td><td>0.7</td><td>3.86</td><td>1236</td><td>14.5</td><td>5.35</td><td>7167</td><td>5.32</td><td>4.92</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB605</td><td>PM2</td><td>3605</td><td>1.03</td><td>4.13</td><td>3609</td><td>5.17</td><td>5.54</td><td>7301</td><td>4.03</td><td>4.94</td><td></td></tr>
+        <tr><td>PM3</td><td>1221</td><td>1.03</td><td>4.0</td><td>1225</td><td>5.17</td><td>5.96</td><td>6243</td><td>4.03</td><td>4.94</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB606</td><td>PM2</td><td>65</td><td>16.1</td><td>4.21</td><td>64</td><td>1.94</td><td>5.90</td><td>75</td><td>3.63</td><td>4.90</td><td></td></tr>
+        <tr><td>PM3</td><td>429</td><td>16.1</td><td>4.15</td><td>425</td><td>1.94</td><td>6.06</td><td>519</td><td>3.63</td><td>4.90</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB801</td><td>PM1</td><td>224</td><td>12.9</td><td>4.41</td><td>4.18</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>PM2</td><td>2650</td><td>12.9</td><td>4.78</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td rowspan="2">4DSAB804</td><td>PM2</td><td>2831</td><td>9.6</td><td>4.44</td><td>4463</td><td>16.6</td><td>5.64</td><td>15201</td><td>4.77</td><td>4.77</td><td></td></tr>
+        <tr><td>PM3</td><td>2455</td><td>9.6</td><td>4.31</td><td>4933</td><td>16.6</td><td>5.63</td><td>14691</td><td>4.77</td><td>4.77</td><td></td></tr>
+        <tr><td rowspan="2">4DSAB805</td><td>PM2</td><td>2814</td><td>8.0</td><td>4.42</td><td>4192</td><td>4.4</td><td>5.60</td><td>4962</td><td>10.77</td><td>4.75</td><td></td></tr>
+        <tr><td>PM3</td><td>422</td><td>8.0</td><td>4.73</td><td>818</td><td>4.4</td><td>3.95</td><td>4581</td><td>10.77</td><td>4.75</td><td></td></tr>
       </table>
-      <p class="muted">※ 실제 API 결과 HTML이 들어올 자리입니다.</p>
-    </section>`
+    </div>
+    <div class="block table" style="left:587px;top:32px;width:193px;height:850px;background:#e3f2fd">
+      <table>
+        <tr><td colspan="4">BTBAS(Dram)</td></tr>
+        <tr><td>引引号</td><td>Cham</td><td>Bulk</td><td>Process</td></tr>
+        <tr><td rowspan="2">4DSLB403</td><td>PM2</td><td rowspan="2">10.91</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLB802</td><td>PM2</td><td rowspan="2">6.29</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4EKGD102</td><td>PM1</td><td rowspan="2">4.26</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM2</td></tr>
+        <tr><td rowspan="2">4DSLE501</td><td>PM2</td><td rowspan="2">4.97</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE502</td><td>PM2</td><td rowspan="2">8.90</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE622</td><td>PM2</td><td rowspan="2">6.43</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE702</td><td>PM2</td><td rowspan="2">6.69</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE703</td><td>PM2</td><td rowspan="2">2.79</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE704</td><td>PM2</td><td rowspan="2">2.82</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE706</td><td>PM2</td><td rowspan="2">4.05</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE707</td><td>PM2</td><td rowspan="2">8.24</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE708</td><td>PM2</td><td rowspan="2">11.92</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DSLE709</td><td>PM2</td><td rowspan="2">0.29</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DCLE712</td><td>PM2</td><td rowspan="2">9.55</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DCLE801</td><td>PM2</td><td rowspan="2">4.34</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+        <tr><td rowspan="2">4DCLE802</td><td>PM2</td><td rowspan="2">10.91</td><td rowspan="2">10.95</td></tr>
+        <tr><td>PM3</td></tr>
+      </table>
+    </div>
+    <div class="block header" style="left:686px;top:8px;width:72px;height:26px;background:#fff3e0">2025년 11월 26일</div>
+  </div>
+</body>
+</html>`
   ];
   const MOCK_DEFAULT_PAGES = [
     `<section data-page="1">
@@ -180,16 +265,42 @@
     }
   };
 
+  const extractBodyContent = (htmlString) => {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, "text/html");
+      return doc.body ? doc.body.innerHTML : htmlString;
+    } catch (error) {
+      console.warn("Failed to parse HTML document.", error);
+      return htmlString;
+    }
+  };
+
+  const buildHtmlDocument = (bodyHTML) =>
+    `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${ORIGINAL_RESULT_STYLE}</style></head><body>${bodyHTML}</body></html>`;
+
   const renderResponsePage = () => {
     const html = state.responsePages[state.currentPage] || "";
     responseContainer.innerHTML = "";
     if (!html) return;
-    const iframe = document.createElement("iframe");
-    iframe.className = "response-frame";
-    iframe.title = `결과 페이지 ${state.currentPage + 1}`;
-    iframe.setAttribute("loading", "lazy");
-    iframe.srcdoc = html;
-    responseContainer.appendChild(iframe);
+
+    const styleEl = document.createElement("style");
+    styleEl.textContent = SCOPED_RESULT_STYLE;
+    responseContainer.appendChild(styleEl);
+
+    const editor = document.createElement("div");
+    editor.className = "result-html-root";
+    editor.contentEditable = "true";
+    editor.spellcheck = false;
+    editor.innerHTML = extractBodyContent(html);
+    responseContainer.appendChild(editor);
+
+    const persistChanges = () => {
+      state.responsePages[state.currentPage] = buildHtmlDocument(editor.innerHTML);
+      updateCopyState();
+    };
+
+    editor.addEventListener("input", persistChanges);
   };
 
   const totalPages = () => Math.max(state.previewPages.length, state.responsePages.length, 0);
@@ -280,9 +391,7 @@
     updateCopyState();
   };
 
-  const loadMockHtmlPages = async () => {
-    return MOCK_DEFAULT_PAGES;
-  };
+  const loadMockHtmlPages = async () => MOCK_DEFAULT_PAGES;
 
   const setMockMode = (enabled) => {
     state.mockMode = enabled;
