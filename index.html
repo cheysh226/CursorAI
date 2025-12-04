@@ -82,7 +82,6 @@
             <div class="preview-meta">
               <p class="file-name" id="fileName"></p>
               <p class="file-meta" id="fileMeta"></p>
-              <button type="button" class="ghost-action ghost-action--small" id="uploadButton">다시 분석</button>
             </div>
           </div>
           <p class="helper-text">처리된 문서는 기록에 남습니다. 클릭하면 결과를 다시 볼 수 있어요.</p>
@@ -92,7 +91,7 @@
           <div class="panel__header">
             <div>
               <p class="eyebrow">AI 분석 결과</p>
-              <h2 id="response-title">바로 활용 가능한 형식</h2>
+              <h2 id="response-title">AI 분석 결과</h2>
               <p class="muted">표/텍스트로 정리된 정보 확인</p>
             </div>
             <div class="view-controls" role="group" aria-label="표시 설정">
@@ -130,6 +129,9 @@
               contenteditable="true"
               spellcheck="false"
             ></article>
+            <div class="response-actions">
+              <button type="button" class="ghost-action ghost-action--block" id="uploadButtonSecondary">다시 분석</button>
+            </div>
           </div>
         </section>
       </section>

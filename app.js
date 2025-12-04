@@ -52,7 +52,8 @@
     previewMeta: "",
     responsePages: [],
     currentPage: 0,
-    lastResponse: ""
+    lastResponse: "",
+    dropzoneHidden: false
   };
 
   const formatBytes = (bytes) => {
@@ -92,14 +93,21 @@
     clearButton.disabled = disabled;
   };
 
+  const updateDropzoneVisibility = () => {
+    dropzone.hidden = state.dropzoneHidden;
+    previewShell.hidden = !state.dropzoneHidden;
+  };
+
   const updatePreviewMeta = (name, meta) => {
     if (!name && !meta) {
-      previewShell.hidden = true;
+      state.dropzoneHidden = false;
+      updateDropzoneVisibility();
       fileNameEl.textContent = "";
       fileMetaEl.textContent = "";
       return;
     }
-    previewShell.hidden = false;
+    state.dropzoneHidden = true;
+    updateDropzoneVisibility();
     fileNameEl.textContent = name;
     fileMetaEl.textContent = meta;
   };
@@ -185,8 +193,9 @@
       spinner.hidden = !isLoading;
       if (spinnerLabel) spinnerLabel.textContent = message;
     }
-    uploadButton.disabled = isLoading || !state.file;
-    refreshButton.disabled = isLoading || !state.file;
+    const disableActions = isLoading || !state.file;
+    uploadButton.disabled = disableActions;
+    refreshButton.disabled = disableActions;
     updateCopyButtonState();
   };
 
@@ -287,298 +296,4 @@
     toggleLoading(true, `PoC · ${displayName} 분석 중...`);
     placeholder.hidden = true;
 
-    try {
-      let htmlPages;
-      if (state.mockMode) {
-        htmlPages = await loadMockHtmlPages();
-      } else if (USE_FAKE_API) {
-        await new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS));
-        htmlPages = ["<p>샘플 응답입니다.</p>"];
-      } else {
-        const formData = new FormData();
-        formData.append("file", file);
-        const response = await fetch(API_ENDPOINT, {
-          method: "POST",
-          body: formData,
-          headers: { Accept: "text/html" }
-        });
-        if (!response.ok) throw new Error(`API responded with ${response.status}`);
-        const html = await response.text();
-        htmlPages = [html];
-      }
-
-      if (state.mockMode && state.previewPages.length < htmlPages.length) {
-        const fallback = state.previewPages[0] || MOCK_IMAGE_PATH;
-        state.previewPages = Array.from({ length: htmlPages.length }, (_, idx) => state.previewPages[idx] || fallback);
-      }
-
-      if (state.activeJobId === jobId) {
-        renderResponse(htmlPages);
-        addHistoryEntry({
-          file,
-          pages: htmlPages,
-          previewPages: state.previewPages,
-          isPdf: file.type.includes("pdf")
-        });
-      }
-    } catch (error) {
-      console.error("Upload failed", error);
-      if (state.activeJobId === jobId) {
-        renderError();
-      }
-    } finally {
-      if (state.activeJobId === jobId) {
-        toggleLoading(false);
-        state.activeJobId = null;
-      }
-    }
-  };
-
-  const handleFile = async (file) => {
-    const activeFile = state.mockMode ? createMockFile() : file;
-    if (!activeFile) return;
-    const jobId = createId();
-    state.activeJobId = jobId;
-    state.file = activeFile;
-    state.currentPage = 0;
-    setClearButtonState(false);
-    await setPreview(activeFile);
-    sendToApi(activeFile, jobId);
-  };
-
-  const clearFile = () => {
-    state.file = null;
-    fileInput.value = "";
-    state.previewPages = [];
-    state.previewMeta = "";
-    state.responsePages = [];
-    state.currentPage = 0;
-    state.activeJobId = null;
-    state.lastResponse = "";
-    setClearButtonState(true);
-    uploadButton.disabled = true;
-    refreshButton.disabled = true;
-    updatePreviewMeta("", "");
-    clearPreviewMedia();
-    resetResponseView();
-  };
-
-  const handleDrop = (event) => {
-    event.preventDefault();
-    dropzone.classList.remove("is-dragover");
-    if (state.mockMode) {
-      handleFile(null);
-      return;
-    }
-    const file = event.dataTransfer.files?.[0];
-    handleFile(file);
-  };
-
-  const preventDefaults = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
-  const handleCopy = async () => {
-    if (!state.lastResponse) return;
-    try {
-      await navigator.clipboard.writeText(state.lastResponse);
-      copyButton.textContent = "복사 완료";
-      setTimeout(() => {
-        copyButton.textContent = "HTML 복사";
-      }, 1500);
-    } catch (err) {
-      console.warn("Clipboard unavailable", err);
-    }
-  };
-
-  const buildHistoryItem = (entry) => {
-    const li = document.createElement("li");
-    li.className = "history-item";
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "history-entry";
-    button.dataset.historyId = entry.id;
-
-    const thumb = document.createElement("div");
-    thumb.className = "history-thumb";
-    const thumbnailSrc = entry.previewPages?.[0];
-    if (thumbnailSrc) {
-      const img = document.createElement("img");
-      img.src = thumbnailSrc;
-      img.alt = `${formatDisplayName(entry.name)} thumbnail`;
-      thumb.appendChild(img);
-    } else {
-      thumb.textContent = entry.isPdf ? "PDF" : "FILE";
-    }
-
-    const metaWrap = document.createElement("div");
-    metaWrap.className = "history-meta";
-    const nameEl = document.createElement("p");
-    nameEl.className = "file-name";
-    nameEl.textContent = formatDisplayName(entry.name);
-    const metaEl = document.createElement("p");
-    metaEl.className = "file-meta";
-    const pagesLabel = entry.pages?.length ? `${entry.pages.length}p` : "1p";
-    metaEl.textContent = `${entry.timestamp} · ${pagesLabel}`;
-    metaWrap.appendChild(nameEl);
-    metaWrap.appendChild(metaEl);
-
-    button.appendChild(thumb);
-    button.appendChild(metaWrap);
-    button.addEventListener("click", () => loadHistoryEntry(entry.id));
-    li.appendChild(button);
-    return li;
-  };
-
-  const refreshHistoryList = () => {
-    historyList.querySelectorAll(".history-item").forEach((item) => item.remove());
-    historyEmptyMessage.hidden = state.history.length > 0;
-    state.history.forEach((entry) => {
-      historyList.appendChild(buildHistoryItem(entry));
-    });
-  };
-
-  const addHistoryEntry = ({ file, pages, previewPages, isPdf }) => {
-    const entry = {
-      id: createId(),
-      name: file.name,
-      pages: pages.map((page) => page),
-      previewPages: previewPages.map((src) => src),
-      timestamp: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }),
-      isPdf,
-      fileMeta: state.previewMeta || formatFileMeta(file)
-    };
-    state.history = [entry, ...state.history].slice(0, 10);
-    refreshHistoryList();
-  };
-
-  const loadHistoryEntry = (entryId) => {
-    const entry = state.history.find((item) => item.id === entryId);
-    if (!entry) return;
-    state.previewPages = (entry.previewPages ?? []).map((src) => src);
-    state.responsePages = (entry.pages ?? []).map((page) => page);
-    state.previewMeta = entry.fileMeta || "";
-    state.currentPage = 0;
-    updatePreviewMeta(formatDisplayName(entry.name), state.previewMeta);
-    renderPreviewPage();
-    if (hasResponseContent()) {
-      placeholder.hidden = true;
-      renderResponsePage();
-    } else {
-      placeholder.hidden = false;
-      responseContainer.innerHTML = "";
-    }
-    updateCopyButtonState();
-    syncPager();
-  };
-
-  const clearHistory = () => {
-    state.history = [];
-    refreshHistoryList();
-  };
-
-  const registerDragEvents = () => {
-    ["dragenter", "dragover"].forEach((eventName) => {
-      dropzone.addEventListener(eventName, (event) => {
-        preventDefaults(event);
-        dropzone.classList.add("is-dragover");
-      });
-    });
-
-    ["dragleave", "drop"].forEach((eventName) => {
-      dropzone.addEventListener(eventName, (event) => {
-        preventDefaults(event);
-        dropzone.classList.remove("is-dragover");
-      });
-    });
-
-    dropzone.addEventListener("drop", handleDrop);
-  };
-
-  const handleResponseEdit = () => {
-    if (!state.responsePages.length) {
-      state.responsePages = [responseContainer.innerHTML];
-      state.currentPage = 0;
-    } else {
-      state.responsePages[state.currentPage] = responseContainer.innerHTML;
-    }
-    placeholder.hidden = hasResponseContent();
-    updateCopyButtonState();
-  };
-
-  const init = () => {
-    registerDragEvents();
-
-    dropzone.addEventListener("click", () => {
-      if (state.mockMode) {
-        handleFile(null);
-      } else {
-        fileInput.click();
-      }
-    });
-
-    dropzone.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        if (state.mockMode) {
-          handleFile(null);
-        } else {
-          fileInput.click();
-        }
-      }
-    });
-
-    browseButton.addEventListener("click", () => {
-      if (state.mockMode) {
-        handleFile(null);
-      } else {
-        fileInput.click();
-      }
-    });
-
-    fileInput.addEventListener("change", (event) => {
-      const file = event.target.files?.[0];
-      handleFile(file);
-    });
-
-    clearButton.addEventListener("click", () => {
-      if (clearButton.getAttribute("aria-disabled") === "true") return;
-      clearFile();
-    });
-
-    uploadButton.addEventListener("click", () => {
-      if (!state.file || state.isLoading) return;
-      const jobId = createId();
-      state.activeJobId = jobId;
-      sendToApi(state.file, jobId);
-    });
-
-    refreshButton.addEventListener("click", () => {
-      if (!state.file || state.isLoading) return;
-      const jobId = createId();
-      state.activeJobId = jobId;
-      sendToApi(state.file, jobId);
-    });
-
-    copyButton.addEventListener("click", handleCopy);
-    clearHistoryButton.addEventListener("click", clearHistory);
-    mockToggleButton.addEventListener("click", () => setMockMode(!state.mockMode));
-
-    previewPrev.addEventListener("click", () => changePage(-1));
-    previewNext.addEventListener("click", () => changePage(1));
-    responsePrev.addEventListener("click", () => changePage(-1));
-    responseNext.addEventListener("click", () => changePage(1));
-
-    responseContainer.addEventListener("input", handleResponseEdit);
-
-    uploadButton.disabled = true;
-    refreshButton.disabled = true;
-    copyButton.disabled = true;
-    setClearButtonState(true);
-    setMockMode(state.mockMode);
-    syncPager();
-  };
-
-  init();
-})();
+...
