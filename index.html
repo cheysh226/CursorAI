@@ -4,43 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Document Intelligence Workbench</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-api-endpoint="/api/documents/parse" data-mock-mode="true">
   <div class="app-shell">
-    <nav class="side-nav" aria-label="Primary">
+    <nav class="side-nav" aria-label="히스토리">
       <div class="brand">
         <div class="brand__mark" aria-hidden="true">◎</div>
         <div>
-          <p class="brand__eyebrow">Doc Parser</p>
-          <p class="brand__title">Workbench</p>
+          <p class="brand__eyebrow">문서 분석기</p>
+          <p class="brand__title">기록</p>
         </div>
       </div>
-      <button class="primary-action" type="button">새 세션 시작</button>
-      <ul class="nav-links">
-        <li><button type="button" class="nav-link is-active">업로드</button></li>
-        <li><button type="button" class="nav-link">히스토리</button></li>
-        <li><button type="button" class="nav-link">API 키</button></li>
-        <li><button type="button" class="nav-link">환경설정</button></li>
-      </ul>
-      <div class="nav-footer">
-        <p class="status-label">API 상태</p>
-        <p class="status-pill is-online">Online</p>
+      <div class="history">
+        <div class="history__header">
+          <p class="eyebrow">최근 처리</p>
+          <button type="button" class="ghost-action ghost-action--small" id="clearHistoryButton">전체 삭제</button>
+        </div>
+        <ul class="history-list" id="historyList" aria-live="polite">
+          <li class="history-empty" id="historyEmptyMessage">아직 업로드된 문서가 없습니다.</li>
+        </ul>
       </div>
     </nav>
 
     <main class="workspace">
       <header class="workspace__header">
         <div>
-          <p class="eyebrow">Drag &amp; Drop 파이프라인</p>
-          <h1>이미지 · PDF → 구조화된 데이터</h1>
+          <h1>AI 문서 인식 (OCR)</h1>
+          <p class="muted header-subtitle">손글씨,이미지,PDF를 넣으면, 정보를 바로 글자/숫자로 변환합니다.</p>
         </div>
-        <div class="connection-pill" role="status" aria-live="polite">
-          <span class="dot" aria-hidden="true"></span>
-          Parsing API 연결됨
+        <div class="workspace__header-right">
+          <button type="button" class="ghost-action ghost-action--small" id="mockToggle" aria-pressed="true">
+            모의 모드 켜짐
+          </button>
+          <div class="connection-pill" role="status" aria-live="polite">
+            <span class="dot" aria-hidden="true"></span>
+            AI 엔진 준비 완료
+          </div>
         </div>
       </header>
 
@@ -48,54 +48,89 @@
         <section class="panel panel--ingest" aria-labelledby="ingest-title">
           <div class="panel__header">
             <div>
-              <p class="eyebrow">1. 업로드</p>
-              <h2 id="ingest-title">이미지 또는 PDF 파일 선택</h2>
-              <p class="muted">PNG, JPG, GIF, PDF · 최대 10MB</p>
+              <p class="eyebrow">Input</p>
+              <h2 id="ingest-title">여기에 파일 끌어놓기</h2>
+              <p class="muted">지원 형식: PNG, JPG, GIF, PDF (최대 10MB)</p>
             </div>
-            <button type="button" class="ghost-action" id="clearButton" aria-disabled="true">입력 초기화</button>
+            <button type="button" class="ghost-action" id="clearButton" aria-disabled="true">업로드 취소</button>
           </div>
 
-          <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일을 드래그 앤 드롭 또는 클릭으로 업로드">
-            <input type="file" id="fileInput" accept="image/*,.pdf" hidden />
-            <div class="dropzone__icon" aria-hidden="true">⇪</div>
-            <p class="dropzone__title">파일을 이곳에 놓으세요</p>
-            <p class="muted">또는</p>
-            <button type="button" class="secondary-action" id="browseButton">파일 찾아보기</button>
-          </div>
-
-          <div class="queued-file" id="queuedFile" hidden>
-            <div>
-              <p class="file-name" id="fileName"></p>
-              <p class="file-meta" id="fileMeta"></p>
+          <div class="ingest-stage" id="ingestStage">
+            <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일을 드래그 앤 드롭 또는 클릭으로 업로드">
+              <input type="file" id="fileInput" accept="image/*,.pdf" hidden />
+              <div class="dropzone__icon" aria-hidden="true">⇪</div>
+              <p class="dropzone__title">파일 놓기</p>
+              <p class="muted">또는</p>
+              <button type="button" class="secondary-action" id="browseButton">내 파일에서 찾기</button>
             </div>
-            <button type="button" class="ghost-action" id="uploadButton">API 전송</button>
+
+            <div class="preview-shell" id="previewShell" hidden>
+              <div class="preview-viewer">
+                <div class="pager-controls" role="group" aria-label="미리보기 페이지 이동">
+                  <button type="button" class="pager-button" id="previewPrev" aria-label="이전 페이지">
+                    ‹
+                  </button>
+                  <span class="pager-label" id="previewPager">1 / 1</span>
+                  <button type="button" class="pager-button" id="previewNext" aria-label="다음 페이지">
+                    ›
+                  </button>
+                </div>
+                <div class="preview-frame">
+                  <img id="previewImage" alt="업로드 미리보기" hidden />
+                  <div class="preview-pdf" id="previewPdf" aria-hidden="true" hidden>PDF</div>
+                </div>
+              </div>
+              <div class="preview-meta">
+                <p class="file-name" id="fileName"></p>
+                <p class="file-meta" id="fileMeta"></p>
+              </div>
+            </div>
           </div>
-          <p class="helper-text">파일이 업로드되면 자동으로 API에 전송됩니다. 버튼은 수동 재시도용입니다.</p>
+          <p class="helper-text">처리된 문서는 기록에 남습니다. 클릭하면 결과를 다시 볼 수 있어요.</p>
         </section>
+
+        <div class="splitter" id="panelSplitter" role="separator" aria-label="패널 크기 조절"></div>
 
         <section class="panel panel--response" aria-labelledby="response-title">
           <div class="panel__header">
             <div>
-              <p class="eyebrow">2. 응답</p>
-              <h2 id="response-title">파싱 결과</h2>
-              <p class="muted">API 응답 HTML을 그대로 미리보기합니다.</p>
+              <p class="eyebrow">Output</p>
+              <h2 id="response-title">AI 분석 결과</h2>
+              <p class="muted">표/텍스트로 정리된 정보 확인</p>
             </div>
             <div class="view-controls" role="group" aria-label="표시 설정">
-              <button type="button" class="ghost-action" id="refreshButton">재요청</button>
-              <button type="button" class="ghost-action" id="copyButton">HTML 복사</button>
+              <button type="button" class="ghost-action" id="refreshButton">재시도</button>
+              <button type="button" class="ghost-action" id="copyButton">결과 다운로드</button>
             </div>
           </div>
 
           <div class="response-shell" aria-live="polite">
-            <div class="spinner" id="spinner" role="status" hidden>
+            <div class="response-tools">
+              <div class="pager-controls" role="group" aria-label="결과 페이지 이동">
+                <button type="button" class="pager-button" id="responsePrev" aria-label="이전 페이지">
+                  ‹
+                </button>
+                <span class="pager-label" id="responsePager">1 / 1</span>
+                <button type="button" class="pager-button" id="responseNext" aria-label="다음 페이지">
+                  ›
+                </button>
+              </div>
+              <p class="editor-tip">결과를 직접 수정한 뒤 HTML을 복사하세요.</p>
+            </div>
+            <div class="inline-spinner" id="spinner" role="status" hidden>
               <span class="spinner__dot"></span>
-              <span>분석 중...</span>
+              <span class="spinner__label">분석 중...</span>
             </div>
             <div class="response-placeholder" id="placeholder">
-              <p>오른쪽 패널에서 문서가 표/텍스트로 변환됩니다.</p>
-              <p class="muted">Drag &amp; Drop으로 파일을 올려주세요.</p>
+              <p>업로드된 결과가 이 영역에 표시됩니다.</p>
             </div>
-            <article class="response-body" id="responseContainer" aria-live="off" aria-label="파싱된 HTML"></article>
+            <div
+              class="response-body"
+              id="responseContainer"
+              aria-live="off"
+              aria-label="파싱된 HTML"
+              hidden
+            ></div>
           </div>
         </section>
       </section>
