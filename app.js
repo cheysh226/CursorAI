@@ -18,6 +18,7 @@
   const responsePrev = document.getElementById("responsePrev");
   const responseNext = document.getElementById("responseNext");
   const responsePager = document.getElementById("responsePager");
+  const responseRetryButton = document.getElementById("uploadButtonSecondary");
   const spinner = document.getElementById("spinner");
   const spinnerLabel = spinner ? spinner.querySelector(".spinner__label") : null;
   const placeholder = document.getElementById("placeholder");
@@ -36,8 +37,8 @@
   const PAGE_BREAK_MARKER = "<!-- PAGE BREAK -->";
   const PAGE_BREAK_REGEX = /<!--\s*PAGE BREAK\s*-->/gi;
   const MOCK_DIR = "모의모드";
-  const MOCK_INPUT = `${MOCK_DIR}/input_test.jpg`;
-  const MOCK_OUTPUT = `${MOCK_DIR}/output_test.html`;
+  const MOCK_INPUT = encodeURI(`${MOCK_DIR}/input_test.jpg`);
+  const MOCK_OUTPUT = encodeURI(`${MOCK_DIR}/output_test.html`);
 
   const createId = () =>
     window.crypto?.randomUUID
