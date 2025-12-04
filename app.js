@@ -40,7 +40,8 @@
     history: [],
     previewSource: null,
     previewMeta: "",
-    mockMode: DEFAULT_MOCK_MODE
+    mockMode: DEFAULT_MOCK_MODE,
+    activeJobId: null
   };
 
   const formatBytes = (bytes) => {
@@ -225,7 +226,7 @@
     `;
   };
 
-  const sendToApi = async (file) => {
+  const sendToApi = async (file, jobId = createId()) => {
     if (!file) return;
     const displayName = formatDisplayName(file.name);
     toggleLoading(true, `PoC · ${displayName} 분석 중...`);
@@ -248,28 +249,37 @@
         html = await response.text();
       }
 
-      renderResponse(html);
-      addHistoryEntry({
-        file,
-        html,
-        previewSource: state.previewSource,
-        isPdf: !file.type.startsWith("image/") && file.type.includes("pdf")
-      });
+      if (state.activeJobId === jobId) {
+        renderResponse(html);
+        addHistoryEntry({
+          file,
+          html,
+          previewSource: state.previewSource,
+          isPdf: !file.type.startsWith("image/") && file.type.includes("pdf")
+        });
+      }
     } catch (error) {
       console.error("Upload failed", error);
-      renderError();
+      if (state.activeJobId === jobId) {
+        renderError();
+      }
     } finally {
-      toggleLoading(false);
+      if (state.activeJobId === jobId) {
+        toggleLoading(false);
+        state.activeJobId = null;
+      }
     }
   };
 
   const handleFile = async (file) => {
     const activeFile = state.mockMode ? createMockFile() : file;
     if (!activeFile) return;
+    const jobId = createId();
+    state.activeJobId = jobId;
     state.file = activeFile;
     setClearButtonState(false);
     await setPreview(activeFile);
-    sendToApi(activeFile);
+    sendToApi(activeFile, jobId);
   };
 
   const clearFile = () => {
@@ -281,6 +291,7 @@
     refreshButton.disabled = true;
     state.previewSource = null;
     state.previewMeta = "";
+    state.activeJobId = null;
     resetResponseView();
   };
 
@@ -449,12 +460,16 @@
 
     uploadButton.addEventListener("click", () => {
       if (!state.file || state.isLoading) return;
-      sendToApi(state.file);
+      const jobId = createId();
+      state.activeJobId = jobId;
+      sendToApi(state.file, jobId);
     });
 
     refreshButton.addEventListener("click", () => {
       if (!state.file || state.isLoading) return;
-      sendToApi(state.file);
+      const jobId = createId();
+      state.activeJobId = jobId;
+      sendToApi(state.file, jobId);
     });
 
     copyButton.addEventListener("click", handleCopy);
