@@ -45,7 +45,7 @@ td{border:1px solid #999;padding:2px;text-align:center}
 .block.header,.block.paragraph_title{font-size:10px}
 `;
   const SCOPED_RESULT_STYLE = `
-.result-html-root{margin:0;padding:10px;height:100%;box-sizing:border-box;font-family:Arial,sans-serif;overflow:auto;background:#fff}
+.result-html-root{margin:0;padding:10px;height:100%;box-sizing:border-box;font-family:Arial,sans-serif;overflow:auto;background:#fff;color:#111}
 .result-html-root .container{position:relative;border:1px solid #ccc}
 .result-html-root .block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:14px;overflow:visible;line-height:1.2}
 .result-html-root table{width:100%;border-collapse:collapse;font-size:10px}
@@ -53,14 +53,7 @@ td{border:1px solid #999;padding:2px;text-align:center}
 .result-html-root .block.header,
 .result-html-root .block.paragraph_title{font-size:10px}
 `;
-  const MOCK_DEFAULT_PAGES = [
-    `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>${ORIGINAL_RESULT_STYLE}</style>
-</head>
-<body>
+  const MOCK_BODY_HTML = `
   <div class="container" style="width:775px;height:877px">
     <div class="block paragraph_title" style="left:367px;top:4px;width:56px;height:29px;background:#f3e5f5">M14Ph2</div>
     <div class="block table" style="left:19px;top:28px;width:564px;height:703px;background:#e3f2fd">
@@ -136,8 +129,10 @@ td{border:1px solid #999;padding:2px;text-align:center}
     <div class="block header" style="left:686px;top:8px;width:72px;height:26px;background:#fff3e0">2025년 11월 26일</div>
   </div>
 </body>
-</html>`
-  ];
+</html>`;
+  const buildHtmlDocument = (bodyHTML) =>
+    `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${ORIGINAL_RESULT_STYLE}</style></head><body>${bodyHTML}</body></html>`;
+  const MOCK_DEFAULT_PAGES = [buildHtmlDocument(MOCK_BODY_HTML)];
   const MOCK_DEFAULT_PAGES = [
     `<section data-page="1">
       <h3>샘플 분석 리포트 · 페이지 1</h3>
