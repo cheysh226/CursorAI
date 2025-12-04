@@ -35,6 +35,7 @@
   const PAGE_BREAK_MARKER = "<!-- PAGE BREAK -->";
   const PAGE_BREAK_REGEX = /<!--\s*PAGE BREAK\s*-->/gi;
   const MOCK_INPUT = encodeURI(`모의모드/input_test.jpg`);
+  const DOWNLOAD_LABEL_DEFAULT = "결과 다운로드";
   const ORIGINAL_RESULT_STYLE = `
 body{margin:0;padding:10px;font-family:Arial,sans-serif;color:#111}
 .container{position:relative;border:1px solid #ccc;background:#fff}
@@ -42,8 +43,8 @@ body{margin:0;padding:10px;font-family:Arial,sans-serif;color:#111}
 table{width:100%;border-collapse:collapse;font-size:11px}
 td{border:1px solid #999;padding:2px;text-align:center}
 `;
-  const SCOPED_RESULT_STYLE = `
-.result-html-root{margin:0;padding:10px;height:100%;box-sizing:border-box;font-family:Arial,sans-serif;overflow:auto;background:#fff;color:#111}
+const SCOPED_RESULT_STYLE = `
+.result-html-root{margin:0;padding:10px;height:100%;width:100%;max-width:100%;box-sizing:border-box;font-family:Arial,sans-serif;overflow:auto;background:#fff;color:#111}
 .result-html-root .container{position:relative;border:1px solid #ccc;background:#fff}
 .result-html-root .block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:12px;line-height:1.2;background:#fff}
 .result-html-root table{width:100%;border-collapse:collapse;font-size:11px}
@@ -286,6 +287,7 @@ const panelSplitter = document.getElementById("panelSplitter");
       downloadButton.disabled = state.isLoading || !state.lastResponse;
     }
   };
+const updateCopyState = () => updateDownloadState();
 
   const toggleLoading = (isLoading, message = "분석 중...") => {
     state.isLoading = isLoading;
@@ -462,6 +464,7 @@ const panelSplitter = document.getElementById("panelSplitter");
     setClearButtonState(true);
     if (uploadButton) uploadButton.disabled = true;
     refreshButton.disabled = true;
+    if (downloadButton) downloadButton.textContent = DOWNLOAD_LABEL_DEFAULT;
     updatePreviewMeta("", "");
     clearPreviewMedia();
     resetResponseView();
@@ -502,10 +505,10 @@ const panelSplitter = document.getElementById("panelSplitter");
     link.click();
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 0);
-    const originalText = downloadButton.textContent;
+    const originalText = downloadButton.textContent || DOWNLOAD_LABEL_DEFAULT;
     downloadButton.textContent = "다운로드 완료";
     setTimeout(() => {
-      downloadButton.textContent = originalText || "HTML 다운로드";
+      downloadButton.textContent = originalText || DOWNLOAD_LABEL_DEFAULT;
     }, 1500);
   };
 
@@ -674,6 +677,7 @@ const panelSplitter = document.getElementById("panelSplitter");
     if (uploadButton) uploadButton.disabled = true;
     refreshButton.disabled = true;
     if (downloadButton) downloadButton.disabled = true;
+    if (downloadButton) downloadButton.textContent = DOWNLOAD_LABEL_DEFAULT;
     setClearButtonState(true);
     setMockMode(state.mockMode);
     syncPager();
