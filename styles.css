@@ -346,7 +346,7 @@ textarea {
 }
 
 .ingest-stage.is-preview .preview-shell {
-  display: grid;
+  display: block;
 }
 
 .dropzone {
@@ -393,20 +393,16 @@ textarea {
   border-radius: var(--radius-lg);
   border: none;
   background: transparent;
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(260px, 1fr);
-  gap: 20px;
-  align-items: stretch;
 }
 
 .preview-viewer {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 18px;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), rgba(5, 6, 10, 0.6));
   border-radius: var(--radius-lg);
   border: var(--border);
-  padding: 18px;
+  padding: 20px;
 }
 
 .pager-controls {
@@ -445,20 +441,21 @@ textarea {
 
 .preview-frame {
   width: 100%;
-  min-height: 420px;
-  max-height: 520px;
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.45);
-  display: grid;
-  place-items: center;
+  min-height: 520px;
+  max-height: 640px;
+  border-radius: calc(var(--radius-lg) - 6px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
 }
 
 .preview-frame img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .preview-pdf {
@@ -467,10 +464,15 @@ textarea {
 }
 
 .preview-meta {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  justify-content: center;
+  gap: 6px;
+  text-align: center;
 }
 
 .file-name {
@@ -576,20 +578,22 @@ textarea {
 }
 
 .inline-spinner {
-  display: inline-flex;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  margin-bottom: 16px;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(7, 9, 15, 0.85);
+  backdrop-filter: blur(6px);
+  z-index: 2;
   color: var(--text-muted);
 }
 
 .spinner__dot {
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-top-color: var(--accent);
