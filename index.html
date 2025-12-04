@@ -55,33 +55,35 @@
             <button type="button" class="ghost-action" id="clearButton" aria-disabled="true">업로드 취소</button>
           </div>
 
-          <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일을 드래그 앤 드롭 또는 클릭으로 업로드">
-            <input type="file" id="fileInput" accept="image/*,.pdf" hidden />
-            <div class="dropzone__icon" aria-hidden="true">⇪</div>
-            <p class="dropzone__title">파일 놓기</p>
-            <p class="muted">또는</p>
-            <button type="button" class="secondary-action" id="browseButton">내 파일에서 찾기</button>
-          </div>
-
-          <div class="preview-shell" id="previewShell" hidden>
-            <div class="preview-viewer">
-              <div class="pager-controls" role="group" aria-label="미리보기 페이지 이동">
-                <button type="button" class="pager-button" id="previewPrev" aria-label="이전 페이지">
-                  ‹
-                </button>
-                <span class="pager-label" id="previewPager">1 / 1</span>
-                <button type="button" class="pager-button" id="previewNext" aria-label="다음 페이지">
-                  ›
-                </button>
-              </div>
-              <div class="preview-frame">
-                <img id="previewImage" alt="업로드 미리보기" hidden />
-                <div class="preview-pdf" id="previewPdf" aria-hidden="true" hidden>PDF</div>
-              </div>
+          <div class="ingest-stage" id="ingestStage">
+            <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일을 드래그 앤 드롭 또는 클릭으로 업로드">
+              <input type="file" id="fileInput" accept="image/*,.pdf" hidden />
+              <div class="dropzone__icon" aria-hidden="true">⇪</div>
+              <p class="dropzone__title">파일 놓기</p>
+              <p class="muted">또는</p>
+              <button type="button" class="secondary-action" id="browseButton">내 파일에서 찾기</button>
             </div>
-            <div class="preview-meta">
-              <p class="file-name" id="fileName"></p>
-              <p class="file-meta" id="fileMeta"></p>
+
+            <div class="preview-shell" id="previewShell" hidden>
+              <div class="preview-viewer">
+                <div class="pager-controls" role="group" aria-label="미리보기 페이지 이동">
+                  <button type="button" class="pager-button" id="previewPrev" aria-label="이전 페이지">
+                    ‹
+                  </button>
+                  <span class="pager-label" id="previewPager">1 / 1</span>
+                  <button type="button" class="pager-button" id="previewNext" aria-label="다음 페이지">
+                    ›
+                  </button>
+                </div>
+                <div class="preview-frame">
+                  <img id="previewImage" alt="업로드 미리보기" hidden />
+                  <div class="preview-pdf" id="previewPdf" aria-hidden="true" hidden>PDF</div>
+                </div>
+              </div>
+              <div class="preview-meta">
+                <p class="file-name" id="fileName"></p>
+                <p class="file-meta" id="fileMeta"></p>
+              </div>
             </div>
           </div>
           <p class="helper-text">처리된 문서는 기록에 남습니다. 클릭하면 결과를 다시 볼 수 있어요.</p>

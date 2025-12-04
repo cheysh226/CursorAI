@@ -327,6 +327,28 @@ textarea {
   margin: 4px 0 0;
 }
 
+.ingest-stage {
+  position: relative;
+  min-height: 360px;
+}
+
+.ingest-stage .dropzone,
+.ingest-stage .preview-shell {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ingest-stage.is-preview .dropzone {
+  display: none;
+}
+
+.ingest-stage .preview-shell {
+  display: none;
+}
+
+.ingest-stage.is-preview .preview-shell {
+  display: grid;
+}
+
 .dropzone {
   border: 1.5px dashed rgba(255, 255, 255, 0.25);
   border-radius: var(--radius-md);

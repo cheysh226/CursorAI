@@ -1,4 +1,5 @@
 (() => {
+  const ingestStage = document.getElementById("ingestStage");
   const dropzone = document.getElementById("dropzone");
   const fileInput = document.getElementById("fileInput");
   const browseButton = document.getElementById("browseButton");
@@ -52,8 +53,7 @@
     previewMeta: "",
     responsePages: [],
     currentPage: 0,
-    lastResponse: "",
-    dropzoneHidden: false
+    lastResponse: ""
   };
 
   const formatBytes = (bytes) => {
@@ -93,21 +93,20 @@
     clearButton.disabled = disabled;
   };
 
-  const updateDropzoneVisibility = () => {
-    dropzone.hidden = state.dropzoneHidden;
-    previewShell.hidden = !state.dropzoneHidden;
+  const setStageMode = (hasPreview) => {
+    ingestStage.classList.toggle("is-preview", hasPreview);
+    dropzone.hidden = hasPreview;
+    previewShell.hidden = !hasPreview;
   };
 
   const updatePreviewMeta = (name, meta) => {
     if (!name && !meta) {
-      state.dropzoneHidden = false;
-      updateDropzoneVisibility();
+      setStageMode(false);
       fileNameEl.textContent = "";
       fileMetaEl.textContent = "";
       return;
     }
-    state.dropzoneHidden = true;
-    updateDropzoneVisibility();
+    setStageMode(true);
     fileNameEl.textContent = name;
     fileMetaEl.textContent = meta;
   };
