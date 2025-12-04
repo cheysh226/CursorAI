@@ -37,21 +37,18 @@
   const PAGE_BREAK_REGEX = /<!--\s*PAGE BREAK\s*-->/gi;
   const MOCK_INPUT = encodeURI(`모의모드/input_test.jpg`);
   const ORIGINAL_RESULT_STYLE = `
-body{margin:0;padding:10px;font-family:Arial,sans-serif}
-.container{position:relative;border:1px solid #ccc}
-.block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:14px;overflow:visible;line-height:1.2}
-table{width:100%;border-collapse:collapse;font-size:10px}
+body{margin:0;padding:10px;font-family:Arial,sans-serif;color:#111}
+.container{position:relative;border:1px solid #ccc;background:#fff}
+.block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:12px;line-height:1.2;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:11px}
 td{border:1px solid #999;padding:2px;text-align:center}
-.block.header,.block.paragraph_title{font-size:10px}
 `;
   const SCOPED_RESULT_STYLE = `
 .result-html-root{margin:0;padding:10px;height:100%;box-sizing:border-box;font-family:Arial,sans-serif;overflow:auto;background:#fff;color:#111}
-.result-html-root .container{position:relative;border:1px solid #ccc}
-.result-html-root .block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:14px;overflow:visible;line-height:1.2}
-.result-html-root table{width:100%;border-collapse:collapse;font-size:10px}
+.result-html-root .container{position:relative;border:1px solid #ccc;background:#fff}
+.result-html-root .block{position:absolute;border:1px solid #999;padding:2px;box-sizing:border-box;font-size:12px;line-height:1.2;background:#fff}
+.result-html-root table{width:100%;border-collapse:collapse;font-size:11px}
 .result-html-root td{border:1px solid #999;padding:2px;text-align:center}
-.result-html-root .block.header,
-.result-html-root .block.paragraph_title{font-size:10px}
 `;
   const MOCK_BODY_HTML = `
   <div class="container" style="width:775px;height:877px">
