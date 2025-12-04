@@ -133,35 +133,6 @@ td{border:1px solid #999;padding:2px;text-align:center}
   const buildHtmlDocument = (bodyHTML) =>
     `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${ORIGINAL_RESULT_STYLE}</style></head><body>${bodyHTML}</body></html>`;
   const MOCK_DEFAULT_PAGES = [buildHtmlDocument(MOCK_BODY_HTML)];
-  const MOCK_DEFAULT_PAGES = [
-    `<section data-page="1">
-      <h3>샘플 분석 리포트 · 페이지 1</h3>
-      <table>
-        <thead><tr><th>필드</th><th>값</th><th>신뢰도</th></tr></thead>
-        <tbody>
-          <tr><td>문서 유형</td><td>세금 계산서</td><td>0.92</td></tr>
-          <tr><td>발행일</td><td>2025-12-01</td><td>0.88</td></tr>
-          <tr><td>총 금액</td><td>₩1,250,000</td><td>0.95</td></tr>
-        </tbody>
-      </table>
-    </section>`,
-    `<section data-page="2">
-      <h3>샘플 분석 리포트 · 페이지 2</h3>
-      <p>주요 항목: 품목별 단가, 수량, 공급가액, 부가세</p>
-      <table>
-        <thead><tr><th>품목</th><th>수량</th><th>단가</th></tr></thead>
-        <tbody>
-          <tr><td>AI 사용량</td><td>12</td><td>₩58,000</td></tr>
-          <tr><td>OCR API</td><td>5</td><td>₩82,000</td></tr>
-        </tbody>
-      </table>
-    </section>`,
-    `<section data-page="3">
-      <h3>샘플 분석 리포트 · 페이지 3</h3>
-      <p>담당자: 홍길동 · 신뢰도 0.90</p>
-      <p>비고: PoC 단계에서는 HTML을 직접 수정해도 됩니다.</p>
-    </section>`
-  ];
 
   const createId = () =>
     window.crypto?.randomUUID
@@ -270,9 +241,6 @@ td{border:1px solid #999;padding:2px;text-align:center}
       return htmlString;
     }
   };
-
-  const buildHtmlDocument = (bodyHTML) =>
-    `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${ORIGINAL_RESULT_STYLE}</style></head><body>${bodyHTML}</body></html>`;
 
   const renderResponsePage = () => {
     const html = state.responsePages[state.currentPage] || "";
