@@ -31,8 +31,11 @@
   const FAKE_DELAY_MS = 1000;
   const API_ENDPOINT = document.body.dataset?.apiEndpoint || "/api/documents/parse";
   const DEFAULT_MOCK_MODE = document.body.dataset?.mockMode !== "false";
-  const MOCK_PAGE_COUNT = 3;
-  const PAGE_BREAK = "\n\n<!-- PAGE BREAK -->\n\n";
+  const PAGE_BREAK_MARKER = "<!-- PAGE BREAK -->";
+  const PAGE_BREAK_REGEX = /<!--\s*PAGE BREAK\s*-->/gi;
+  const MOCK_ASSET_DIR = "모의모드";
+  const MOCK_IMAGE_PATH = `${MOCK_ASSET_DIR}/input_test.jpg`;
+  const MOCK_HTML_PATH = `${MOCK_ASSET_DIR}/output_test.html`;
 
   const createId = () =>
     window.crypto?.randomUUID
@@ -46,7 +49,6 @@
     mockMode: DEFAULT_MOCK_MODE,
     activeJobId: null,
     previewPages: [],
-    previewName: "",
     previewMeta: "",
     responsePages: [],
     currentPage: 0,
@@ -65,66 +67,17 @@
   const formatFileMeta = (file) => `${file.type || "알 수 없음"} · ${formatBytes(file.size)}`;
 
   const createMockFile = () => ({
-    name: "샘플 문서.jpg",
+    name: "input_test.jpg",
     type: "image/jpeg",
     size: 256000,
     isMock: true
   });
 
-  const createMockPreviewPages = (count) =>
-    Array.from({ length: count }, (_, idx) => {
-      const page = idx + 1;
-      const svg = `<?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" width="320" height="420" viewBox="0 0 320 420">
-          <defs>
-            <linearGradient id="g${page}" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#6c7bff" />
-              <stop offset="100%" stop-color="#5de0ff" />
-            </linearGradient>
-          </defs>
-          <rect width="320" height="420" rx="24" fill="#0d1020" />
-          <rect x="40" y="80" width="240" height="180" rx="16" fill="rgba(255,255,255,0.08)" />
-          <rect x="40" y="280" width="200" height="20" rx="10" fill="url(#g${page})" />
-          <rect x="40" y="310" width="160" height="16" rx="8" fill="rgba(255,255,255,0.2)" />
-          <text x="50%" y="60%" text-anchor="middle" fill="#9fa9ff" font-size="22" font-family="'Inter', sans-serif">PAGE ${page}</text>
-        </svg>`;
-      return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-    });
-
-  const createFakeHtmlPages = (count = MOCK_PAGE_COUNT) =>
-    Array.from({ length: count }, (_, idx) => {
-      const page = idx + 1;
-      return `<section data-page="${page}">
-        <h3>필드 추출 미리보기 · Page ${page}</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>열</th>
-              <th>예측 값</th>
-              <th>신뢰도</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>제목</td>
-              <td>거래 내역 요약 ${page}</td>
-              <td>0.93</td>
-            </tr>
-            <tr>
-              <td>문서 유형</td>
-              <td>Invoice</td>
-              <td>0.88</td>
-            </tr>
-            <tr>
-              <td>페이지</td>
-              <td>${page}</td>
-              <td>0.74</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="muted">※ 현재는 PoC용 예시 데이터가 표시됩니다.</p>
-      </section>`;
-    });
+  const splitHtmlIntoPages = (html = "") =>
+    html
+      .split(PAGE_BREAK_REGEX)
+      .map((chunk) => chunk.trim())
+      .filter(Boolean);
 
   const readAsDataUrl = (file) =>
     new Promise((resolve) => {
@@ -183,32 +136,22 @@
   const getTotalPages = () => {
     const previewCount = state.previewPages.length;
     const responseCount = state.responsePages.length;
-    const max = Math.max(previewCount, responseCount);
-    return max || 0;
+    const total = Math.max(previewCount, responseCount);
+    return total || 0;
   };
 
   const syncPager = () => {
     const total = getTotalPages();
     const hasPages = total > 0;
     const currentDisplay = hasPages ? state.currentPage + 1 : 0;
-    const label = `${currentDisplay} / ${total || 0}`;
+    const label = `${currentDisplay} / ${total}`;
     previewPager.textContent = label;
     responsePager.textContent = label;
 
     const disablePrev = !hasPages || state.currentPage === 0;
     const disableNext = !hasPages || state.currentPage >= total - 1;
-
     [previewPrev, responsePrev].forEach((btn) => (btn.disabled = disablePrev));
     [previewNext, responseNext].forEach((btn) => (btn.disabled = disableNext));
-  };
-
-  const ensureCurrentPageBounds = () => {
-    const total = getTotalPages();
-    if (!total) {
-      state.currentPage = 0;
-      return;
-    }
-    state.currentPage = Math.min(state.currentPage, total - 1);
   };
 
   const changePage = (delta) => {
@@ -227,9 +170,9 @@
 
   const combinedResponseHtml = () =>
     state.responsePages
-      .map((page, idx) => (page ? `<!-- Page ${idx + 1} -->\n${page}` : ""))
+      .map((page, idx) => (page ? `<!-- Page ${idx + 1} -->\n${page.trim()}` : ""))
       .filter(Boolean)
-      .join(PAGE_BREAK);
+      .join(`\n\n${PAGE_BREAK_MARKER}\n\n`);
 
   const updateCopyButtonState = () => {
     state.lastResponse = hasResponseContent() ? combinedResponseHtml() : "";
@@ -256,9 +199,9 @@
     syncPager();
   };
 
-  const renderResponse = (htmlInput) => {
-    const pages = Array.isArray(htmlInput) ? htmlInput : [htmlInput];
-    state.responsePages = pages.filter((page) => page !== undefined && page !== null);
+  const renderResponse = (pagesInput) => {
+    const pages = Array.isArray(pagesInput) ? pagesInput : [pagesInput];
+    state.responsePages = pages.map((page) => page ?? "");
     state.currentPage = 0;
     const hasContent = hasResponseContent();
     placeholder.hidden = hasContent;
@@ -284,6 +227,19 @@
     updateCopyButtonState();
   };
 
+  const loadMockHtmlPages = async () => {
+    try {
+      const response = await fetch(MOCK_HTML_PATH, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Failed to load ${MOCK_HTML_PATH}`);
+      const text = await response.text();
+      const pages = splitHtmlIntoPages(text);
+      return pages.length ? pages : ["<p>모의 HTML을 불러오지 못했습니다.</p>"];
+    } catch (error) {
+      console.error("Mock HTML load failed", error);
+      return ["<p>모의 HTML을 불러오지 못했습니다.</p>"];
+    }
+  };
+
   const setMockMode = (enabled) => {
     state.mockMode = enabled;
     mockToggleButton.textContent = enabled ? "모의 모드 켜짐" : "모의 모드 꺼짐";
@@ -295,8 +251,8 @@
   const setPreview = async (file) => {
     let previewFile = file;
     if (state.mockMode) {
-      previewFile = file?.isMock ? file : createMockFile();
-      state.previewPages = createMockPreviewPages(MOCK_PAGE_COUNT);
+      previewFile = createMockFile();
+      state.previewPages = [MOCK_IMAGE_PATH];
     } else if (!previewFile) {
       state.previewPages = [];
     } else if (previewFile.type.startsWith("image/")) {
@@ -309,14 +265,15 @@
     }
 
     if (!previewFile) {
+      state.previewMeta = "";
       updatePreviewMeta("", "");
       clearPreviewMedia();
+      syncPager();
       return;
     }
 
     const displayName = formatDisplayName(previewFile.name);
     const metaText = formatFileMeta(previewFile);
-    state.previewName = displayName;
     state.previewMeta = metaText;
     state.currentPage = 0;
     updatePreviewMeta(displayName, metaText);
@@ -332,9 +289,11 @@
 
     try {
       let htmlPages;
-      if (USE_FAKE_API) {
+      if (state.mockMode) {
+        htmlPages = await loadMockHtmlPages();
+      } else if (USE_FAKE_API) {
         await new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS));
-        htmlPages = createFakeHtmlPages(state.previewPages.length || MOCK_PAGE_COUNT);
+        htmlPages = ["<p>샘플 응답입니다.</p>"];
       } else {
         const formData = new FormData();
         formData.append("file", file);
@@ -346,6 +305,11 @@
         if (!response.ok) throw new Error(`API responded with ${response.status}`);
         const html = await response.text();
         htmlPages = [html];
+      }
+
+      if (state.mockMode && state.previewPages.length < htmlPages.length) {
+        const fallback = state.previewPages[0] || MOCK_IMAGE_PATH;
+        state.previewPages = Array.from({ length: htmlPages.length }, (_, idx) => state.previewPages[idx] || fallback);
       }
 
       if (state.activeJobId === jobId) {
@@ -386,10 +350,11 @@
     state.file = null;
     fileInput.value = "";
     state.previewPages = [];
-    state.previewName = "";
     state.previewMeta = "";
+    state.responsePages = [];
     state.currentPage = 0;
     state.activeJobId = null;
+    state.lastResponse = "";
     setClearButtonState(true);
     uploadButton.disabled = true;
     refreshButton.disabled = true;
@@ -491,12 +456,11 @@
   const loadHistoryEntry = (entryId) => {
     const entry = state.history.find((item) => item.id === entryId);
     if (!entry) return;
-    state.previewPages = entry.previewPages ?? [];
-    state.responsePages = entry.pages ?? [];
-    state.previewName = formatDisplayName(entry.name);
+    state.previewPages = (entry.previewPages ?? []).map((src) => src);
+    state.responsePages = (entry.pages ?? []).map((page) => page);
     state.previewMeta = entry.fileMeta || "";
     state.currentPage = 0;
-    updatePreviewMeta(state.previewName, state.previewMeta);
+    updatePreviewMeta(formatDisplayName(entry.name), state.previewMeta);
     renderPreviewPage();
     if (hasResponseContent()) {
       placeholder.hidden = true;
