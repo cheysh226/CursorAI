@@ -89,6 +89,8 @@
           <p class="helper-text">처리된 문서는 기록에 남습니다. 클릭하면 결과를 다시 볼 수 있어요.</p>
         </section>
 
+        <div class="splitter" id="panelSplitter" role="separator" aria-label="패널 크기 조절"></div>
+
         <section class="panel panel--response" aria-labelledby="response-title">
           <div class="panel__header">
             <div>
@@ -120,18 +122,15 @@
               <span class="spinner__label">분석 중...</span>
             </div>
             <div class="response-placeholder" id="placeholder">
-              <p>왼쪽에서 문서를 선택하면 페이지별 결과가 나타납니다.</p>
-              <p class="muted">필요한 부분을 직접 수정한 뒤 저장할 수 있습니다.</p>
+              <p>업로드된 결과가 이 영역에 표시됩니다.</p>
             </div>
             <div
               class="response-body"
               id="responseContainer"
               aria-live="off"
               aria-label="파싱된 HTML"
+              hidden
             ></div>
-            <div class="response-actions">
-              <button type="button" class="ghost-action ghost-action--block" id="uploadButtonSecondary">다시 분석</button>
-            </div>
           </div>
         </section>
       </section>
