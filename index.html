@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document Intelligence Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <nav class="side-nav" aria-label="Primary">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">◎</div>
+        <div>
+          <p class="brand__eyebrow">Doc Parser</p>
+          <p class="brand__title">Workbench</p>
+        </div>
+      </div>
+      <button class="primary-action" type="button">새 세션 시작</button>
+      <ul class="nav-links">
+        <li><button type="button" class="nav-link is-active">업로드</button></li>
+        <li><button type="button" class="nav-link">히스토리</button></li>
+        <li><button type="button" class="nav-link">API 키</button></li>
+        <li><button type="button" class="nav-link">환경설정</button></li>
+      </ul>
+      <div class="nav-footer">
+        <p class="status-label">API 상태</p>
+        <p class="status-pill is-online">Online</p>
+      </div>
+    </nav>
+
+    <main class="workspace">
+      <header class="workspace__header">
+        <div>
+          <p class="eyebrow">Drag &amp; Drop 파이프라인</p>
+          <h1>이미지 · PDF → 구조화된 데이터</h1>
+        </div>
+        <div class="connection-pill" role="status" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span>
+          Parsing API 연결됨
+        </div>
+      </header>
+
+      <section class="workspace__body">
+        <section class="panel panel--ingest" aria-labelledby="ingest-title">
+          <div class="panel__header">
+            <div>
+              <p class="eyebrow">1. 업로드</p>
+              <h2 id="ingest-title">이미지 또는 PDF 파일 선택</h2>
+              <p class="muted">PNG, JPG, GIF, PDF · 최대 10MB</p>
+            </div>
+            <button type="button" class="ghost-action" id="clearButton" aria-disabled="true">입력 초기화</button>
+          </div>
+
+          <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일을 드래그 앤 드롭 또는 클릭으로 업로드">
+            <input type="file" id="fileInput" accept="image/*,.pdf" hidden />
+            <div class="dropzone__icon" aria-hidden="true">⇪</div>
+            <p class="dropzone__title">파일을 이곳에 놓으세요</p>
+            <p class="muted">또는</p>
+            <button type="button" class="secondary-action" id="browseButton">파일 찾아보기</button>
+          </div>
+
+          <div class="queued-file" id="queuedFile" hidden>
+            <div>
+              <p class="file-name" id="fileName"></p>
+              <p class="file-meta" id="fileMeta"></p>
+            </div>
+            <button type="button" class="ghost-action" id="uploadButton">API 전송</button>
+          </div>
+          <p class="helper-text">파일이 업로드되면 자동으로 API에 전송됩니다. 버튼은 수동 재시도용입니다.</p>
+        </section>
+
+        <section class="panel panel--response" aria-labelledby="response-title">
+          <div class="panel__header">
+            <div>
+              <p class="eyebrow">2. 응답</p>
+              <h2 id="response-title">파싱 결과</h2>
+              <p class="muted">API 응답 HTML을 그대로 미리보기합니다.</p>
+            </div>
+            <div class="view-controls" role="group" aria-label="표시 설정">
+              <button type="button" class="ghost-action" id="refreshButton">재요청</button>
+              <button type="button" class="ghost-action" id="copyButton">HTML 복사</button>
+            </div>
+          </div>
+
+          <div class="response-shell" aria-live="polite">
+            <div class="spinner" id="spinner" role="status" hidden>
+              <span class="spinner__dot"></span>
+              <span>분석 중...</span>
+            </div>
+            <div class="response-placeholder" id="placeholder">
+              <p>오른쪽 패널에서 문서가 표/텍스트로 변환됩니다.</p>
+              <p class="muted">Drag &amp; Drop으로 파일을 올려주세요.</p>
+            </div>
+            <article class="response-body" id="responseContainer" aria-live="off" aria-label="파싱된 HTML"></article>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <template id="errorTemplate">
+    <div class="response-error">
+      <h3>요청을 처리하지 못했습니다.</h3>
+      <p class="muted">네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요.</p>
+    </div>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
