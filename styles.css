@@ -442,7 +442,6 @@ textarea {
 .preview-frame {
   width: 100%;
   min-height: 520px;
-  max-height: 640px;
   border-radius: calc(var(--radius-lg) - 6px);
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(0, 0, 0, 0.5);
@@ -455,7 +454,7 @@ textarea {
 .preview-frame img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .preview-pdf {
