@@ -229,15 +229,19 @@
   };
 
   const loadMockHtmlPages = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
     try {
-      const response = await fetch(MOCK_OUTPUT, { cache: "no-store" });
+      const response = await fetch(MOCK_OUTPUT, { cache: "no-store", signal: controller.signal });
       if (!response.ok) throw new Error(`Failed to load ${MOCK_OUTPUT}`);
       const text = await response.text();
       const pages = splitPages(text);
-      return pages.length ? pages : ["<p>모의 HTML을 불러오지 못했습니다.</p>"];
+      return pages.length ? pages : MOCK_DEFAULT_PAGES;
     } catch (error) {
-      console.error("Mock HTML load failed", error);
-      return ["<p>모의 HTML을 불러오지 못했습니다.</p>"];
+      console.warn("Mock HTML load failed, fallback pages used.", error);
+      return MOCK_DEFAULT_PAGES;
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
@@ -291,7 +295,11 @@
     try {
       let htmlPages;
       if (state.mockMode) {
-        htmlPages = await loadMockHtmlPages();
+        const [pages] = await Promise.all([
+          loadMockHtmlPages(),
+          new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS))
+        ]);
+        htmlPages = pages;
       } else if (USE_FAKE_API) {
         await new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS));
         htmlPages = ["<p>샘플 응답입니다.</p>"];
